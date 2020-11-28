@@ -109,11 +109,15 @@ state_pop <-
   mutate(state = state.abb[match(NAME, state.name)]) %>%
   select(state, value, -geometry)
 
+cases
+
 cases_state <- cases %>%
   filter(date == "11/3/20") %>%
   group_by(state) %>%
   summarize(mean = mean(cases))
 
+cases_state
+write_rds(cases_state, "cases_state.rds")
 poll_vs_cases <- pct_changes %>%
   filter(state != "National") %>%
   mutate(biden_diff_mar = biden_mar - trump_mar,
@@ -401,10 +405,14 @@ total_cov %>%
                      labels = c("3/19", "4/02", "4/16", "4/30", "5/14", "5/28", "6/11", "6/25")) + 
   theme_minimal() +
   transition_reveal(survey)
-```
 
 
-```{r}
+march <- read_rds("march.rds")
+april <- read_rds("april.rds")
+may <- read_rds("may.rds")
+june <- read_rds("june.rds")
+total <- full_join(full_join(march, april), full_join(may, june))
+
 total_new <- total %>%
   select(extra_trump_corona, 
          news_sources_fox, 
@@ -481,8 +489,7 @@ corrplot.mixed(corre1,
                cl.align = "r",
                tl.pos = "lt", diag = "u",
                tl.col = "black")
-```
-```{r}
+`
 counties_pop <- read_csv("covid_county_population_usafacts.csv")
 counties_cases <- read_csv("covid_confirmed_usafacts.csv")
 
@@ -616,7 +623,7 @@ popu <- read_csv("covid_county_population_usafacts.csv") %>%
 cases_per_cap_state <- inner_join(cases, popu, by = "state") %>%
   mutate(cases_per_100000 = 100000 * cases / population)
 
-cases_per_cap_state
+write_rds(cases_per_cap_state, "cases_state.rds")
 
 averages <- read_csv("presidential_poll_averages_2020.csv", col_types = cols(
   cycle = col_double(),
@@ -635,15 +642,6 @@ averages_new <- averages %>%
 averages
 
 cases_plot2
-
-
-
-## R Markdown
-
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
-
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
-  
   
   state_avgs <- read_csv("presidential_poll_averages_2020 copy.csv",
                          col_types = cols(
@@ -692,17 +690,33 @@ inner_join(covid_approval, natl_model, by = "modeldate") %>%
          national_voteshare_inc_lo, national_voteshare_chal_lo,
          national_voteshare_inc_hi, national_voteshare_chal_hi,
          approve_estimate, disapprove_estimate) %>%
-  pivot_longer(cols = c(national_voteshare_inc, national_voteshare_chal),
+  pivot_longer(cols = c(national_voteshare_inc, national_voteshare_chal, 
+                        approve_estimate),
                names_to = "poll_type",
                values_to = "estimate") %>%
   ggplot(aes(x = as.Date(modeldate, "%m/%d/%Y"), y = estimate, color = poll_type)) +
   geom_line(size = 1.3) +
   geom_ribbon(aes(ymin = national_voteshare_inc_lo, ymax = national_voteshare_inc_hi),
-              fill = "red", alpha = 0.2, color = NA) +
+              fill = "red", alpha = 0.3, color = NA) +
   geom_ribbon(aes(ymin = national_voteshare_chal_lo, ymax = national_voteshare_chal_hi),
-              fill = "blue", alpha = 0.2, color = NA) +
-  geom_line(aes(y = approve_estimate)) + 
-  geom_line(aes(y = disapprove_estimate))
+              fill = "blue", alpha = 0.3, color = NA) +
+  scale_color_manual(breaks = c("approve_estimate", "national_voteshare_chal", 
+                                "national_voteshare_inc"),
+                     values = c("darkgreen", "blue", "red"),
+                     labels = c("Trump Covid Approval", "Biden Nat'l Vote Share", "Trump Nat'l Vote Share"),
+                     name = "Estimate") +
+  theme_minimal() +
+  labs(title = "Projected 2020 Nat'l Vote Shares Over Time",
+       subtitle = "Compared with Trump's approval on Covid",
+       y = "Percent",
+       x = "Date") +
+  geom_vline(xintercept = as.Date("9/22/20", "%m/%d/%y"),
+             lty = "dashed",
+             alpha = 0.5) +
+  annotate("text",
+           x = as.Date("10/10/20", "%m/%d/%y"),
+           y = 58,
+           label = "U.S. Deaths \n Surpass 200,000", size = 3)
 
 
 

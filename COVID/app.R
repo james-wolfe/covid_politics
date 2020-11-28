@@ -19,6 +19,12 @@ ui <- navbarPage(
     tabPanel("Virus",
              fluidPage(theme = shinytheme("flatly"),
                        titlePanel("The Spread of COVID-19"),
+                       fluidRow(
+                           column(width = 6,
+                                  img(src = "new_cases.gif")),
+                           column(width = 6,
+                                  img(src = "states_cases.gif"))
+                       ),
                        sidebarPanel(
                            sliderInput("dateInput",
                                        "Dates:",
@@ -33,13 +39,8 @@ ui <- navbarPage(
                                        selected = "Cases per 100,000")),
                        mainPanel(
                            plotOutput("VirusPlot")
-                       ),
-                       fluidRow(
-                           column(width = 6,
-                                  img(src = "new_cases.gif")),
-                           column(width = 6,
-                                  img(src = "states_cases.gif"))
                        )
+                     
                        
              )),
     tabPanel("Public Opinion",
@@ -47,34 +48,44 @@ ui <- navbarPage(
                  titlePanel("Public Opinion"),
                  mainPanel(
                      img(src = "trump_covid.gif")
-                 )
+                 ),
+                 fluidRow(
+                     column(width = 6,
+                            img(src = "natlvote.png", width = 728, height = 457)
+                 ))
              )
     ),
     tabPanel("Model",
              fluidPage(
                  titlePanel("Approval & Party ID"),
-                 fluidRow(
-                     column(width = 9,
+                 mainPanel(
                             plotOutput("ScatterPlot", height = 350,
                                        hover = hoverOpts(id = "plot_hover"))
-                     )
+                 )    
                  ),
                  fluidRow(
                      column(width = 5,
                             verbatimTextOutput("hover_info")
                      )
+                 ),
+                 fluidRow(
+                     column(width = 5,
+                            img(src = "correlation.png", width = 555, height = 504))
                  )
-             )
-             
     ),
     tabPanel("Election",
              fluidPage(
                  titlePanel("The 2020 U.S. Election"),
+                 sidebarPanel(
+                     selectInput(inputId = "shift", 
+                                          label = ("Select one:"), 
+                                          choices = list("Democratic Shift" = "shift", 
+                                                         "2020 Democratic Margin" = "margin_2020"), 
+                                          selected = "Democratic Shift")),
                  mainPanel(
-                     plotOutput("newPlot")
-                 )
-             )
-    ),
+                     plotOutput("ElectionPlot")
+                 ),
+             )),
     tabPanel("About", 
              titlePanel("About"),
              h3("Project Background and Motivations"),
@@ -91,7 +102,7 @@ ui <- navbarPage(
                https://github.com/james-wolfe/FinalProject.")))
 
 
-server <- function(input, output, session) {
+server <- function(input, output, session){
     
     output$VirusPlot <- renderPlot({
         cases_plot <- counties_cases %>%
@@ -160,10 +171,57 @@ server <- function(input, output, session) {
         
     })
     
+    output$ElectionPlot <- renderPlot({
+        
+        ifelse(input$shift == "shift",
+               results_cases_plot <- 
+                   results_cases %>%
+                   ggplot(aes(x = cases_per_100000, 
+                              y = shift, 
+                              color = margin_2020,
+                              size = population)) +
+                   geom_point(alpha = 0.7) +
+                   geom_text_repel(aes(label = state), 
+                                    alpha = 1, 
+                                    size = 3,
+                                    color = "black",
+                                    min.segment.length = 0.7) +
+                   geom_smooth(method = lm, se = FALSE, formula = y ~ x) +
+                   scale_color_gradientn(colors = c("red", "red", "pink", 
+                                                    "lightblue", "blue", "blue"),
+                                         values = c(0, 0.25, 0.333076899, 0.3330769, 
+                                                    .4166, 1),
+                                         breaks = c(-25, 0, 25, 50, 75),
+                                         labels = c(-25, 0, 25, 50, 75)) +
+                   scale_size_continuous(range = c(2, 8)) +
+                   theme_minimal(),
+               results_cases_plot <- 
+                   results_cases %>%
+                   ggplot(aes(x = cases_per_100000, 
+                              y = margin_2020, 
+                              color = margin_2020,
+                              size = population)) +
+                   geom_point(alpha = 0.7) +
+                   geom_text_repel(aes(label = state), 
+                                    alpha = 1, 
+                                    size = 3,
+                                    color = "black",
+                                    min.segment.length = 0.8) +
+                   geom_smooth(method = lm, se = FALSE, formula = y ~ x) +
+                   scale_color_gradientn(colors = c("red", "red", "pink", "lightblue", "blue", "blue"),
+                                         values = c(0, 0.25, 0.333076899, 0.3330769, .4166, 1),
+                                         breaks = c(-25, 0, 25, 50, 75),
+                                         labels = c(-25, 0, 25, 50, 75)) +
+                   scale_size_continuous(range = c(2, 8)) +
+                   theme_minimal())
+        
+        results_cases_plot
+    })
+    
     output$hover_info <- renderPrint({
         if(!is.null(input$plot_hover)){
-            hover=input$plot_hover
-            dist=sqrt((hover$x-total$mean_democrat)^2+(hover$y-total$approval_covid)^2)
+            hover = input$plot_hover
+            dist = sqrt((hover$x-total$mean_democrat)^2+(hover$y-total$approval_covid)^2)
             cat("Congressional District \n")
             if(min(dist) < 3)
                 total$congress_district[which.min(dist)]
