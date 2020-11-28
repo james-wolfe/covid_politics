@@ -13,6 +13,7 @@ june <- read_rds("~/Projects/covid_politics/june.rds")
 total <- read_rds("~/Projects/covid_politics/total_filt.rds")
 counties_pop <- read_csv("~/Projects/covid_politics/covid_county_population_usafacts.csv")
 counties_cases <- read_rds("~/Projects/covid_politics/county_cases.rds")
+covid_approval <- read_rds("~/Projects/covid_politics/covid_approval.rds")
 
 ui <- navbarPage(
     "Public Opinion, Now",
@@ -49,6 +50,14 @@ ui <- navbarPage(
                  mainPanel(
                      img(src = "trump_covid.gif")
                  ),
+                 mainPanel(
+                            plotOutput("ApprovalPlot")
+                            ),
+                sidebarPanel(h4("Choose Groups"),
+                            checkboxInput("toggleAll", label = "All", value = FALSE),
+                            checkboxInput("toggleDem", label = "Democrats", value = TRUE),
+                            checkboxInput("toggleRep", label = "Republicans", value = TRUE),
+                            checkboxInput("toggleInd", label = "Independents", value = FALSE)),
                  fluidRow(
                      column(width = 6,
                             img(src = "natlvote.png", width = 728, height = 457)
@@ -185,7 +194,7 @@ server <- function(input, output, session){
                                     alpha = 1, 
                                     size = 3,
                                     color = "black",
-                                    min.segment.length = 0.7) +
+                                    min.segment.length = 1) +
                    geom_smooth(method = lm, se = FALSE, formula = y ~ x) +
                    scale_color_gradientn(colors = c("red", "red", "pink", 
                                                     "lightblue", "blue", "blue"),
@@ -216,6 +225,60 @@ server <- function(input, output, session){
                    theme_minimal())
         
         results_cases_plot
+    })
+    
+    output$ApprovalPlot <- renderPlot({
+        
+        p <- covid_approval %>% 
+            ggplot(aes(x = as.Date(modeldate, "%m/%d/%Y"), y = all))
+        
+        if(input$toggleDem)
+            p <- p + geom_line(aes(x = as.Date(modeldate, "%m/%d/%Y"),
+                                   y = D),
+                               color = "blue", 
+                               size = 1.2) +
+                geom_text(x = as.Date("10/1/2020", "%m/%d/%Y"),
+                          y = 14,
+                          label = "Democrats",
+                          color = "blue")
+        
+        if(input$toggleRep)
+            p <- p + geom_line(aes(x = as.Date(modeldate, "%m/%d/%Y"),
+                                   y = R),
+                               color = "red", 
+                               size = 1.2) +
+                geom_text(x = as.Date("4/22/2020", "%m/%d/%Y"),
+                          y = 81.2,
+                          label = "Republicans",
+                          color = "red")
+        
+        if(input$toggleInd)
+            p <- p + geom_line(aes(x = as.Date(modeldate, "%m/%d/%Y"),
+                                   y = I),
+                               color = "darkgray",
+                               size = 1.2) +
+                geom_text(x = as.Date("4/22/2020", "%m/%d/%Y"),
+                          y = 36,
+                          label = "Independents",
+                          color = "darkgray")
+        
+        if(input$toggleAll)
+            p <- p + geom_line(aes(x = as.Date(modeldate, "%m/%d/%Y"),
+                                   y = all),
+                               color = "forestgreen",
+                               size = 1.2) +
+                geom_text(x = as.Date("10/1/2020", "%m/%d/%Y"),
+                          y = 43,
+                          label = "All",
+                          color = "forestgreen")
+        
+        p +
+            labs(x = "Date",
+                 y = "Percent",
+                 title = "Trump Approval on Covid by Party",
+                 subtitle = "Partisan differences are significant") +
+            theme_minimal()
+        
     })
     
     output$hover_info <- renderPrint({

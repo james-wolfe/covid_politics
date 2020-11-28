@@ -54,4 +54,17 @@ results_cases <- results_2016_2020 %>%
 write_rds(results_cases, "results_cases.rds")
 
 
+approval <- read_csv("covid_approval_toplines.csv") 
 
+approval
+View(approval %>%
+       pivot_wider(id_cols = "modeldate",
+                   values_from = "approve_estimate",
+                   names_from = "party"))
+
+approval1 <- approval %>%
+  pivot_wider(id_cols = "modeldate",
+              values_from = "approve_estimate",
+              names_from = "party") %>%
+  ggplot(aes(x = as.Date(modeldate, "%m/%d/%Y"), y = approve_estimate, color = party)) +
+  geom_line()

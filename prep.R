@@ -272,21 +272,12 @@ cov_animate %>%
 total_cov %>%
   
   
-  
-  ```
-
-
-```{r}
 total_new <- total %>%
   select(trump_biden, news_sources_fox) %>%
   filter(trump_biden %in% c(1, 2),
          news_sources_fox %in% c(1, 2))
 
-#corrplot !!!!
-```
 
-
-```{r}
 population <- get_decennial(geography = "state",
                             variables = "P001001",
                             year = 2010,
@@ -301,17 +292,6 @@ pop <- population %>%
 
 cor(total_new, method = c("pearson", "kendall", "spearman"))
 
-
-
-
-
-
-
-
-
-
-
-# Here I'm creating the plot of Trump's shifting public opinion by state
 
 pop <- states_population %>%
   rename(state = NAME) %>%
@@ -391,10 +371,6 @@ survey %>%
   transition_states(month, transition_length = 1, state_length = 1)
 
 
-```
-
-
-```{r}
 total_cov %>%
   pivot_longer(cols = c(approval_covid, mean_trump), values_to = "percent", names_to = "type") %>%
   filter(census_region == 4) %>%
@@ -489,7 +465,7 @@ corrplot.mixed(corre1,
                cl.align = "r",
                tl.pos = "lt", diag = "u",
                tl.col = "black")
-`
+
 counties_pop <- read_csv("covid_county_population_usafacts.csv")
 counties_cases <- read_csv("covid_confirmed_usafacts.csv")
 
