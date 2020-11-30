@@ -113,7 +113,11 @@ natl_polls %>%
            label = "Actual Trump Vote Share", color = "firebrick4", size = 3) +
   annotate(geom = "text", x = as.Date("8/15/20", "%m/%d/%y"), y = 51.65, 
            label = "Actual Biden Vote Share", color = "navyblue", size = 3) +
-  theme_minimal()
+  theme_minimal() +
+  labs(x = "Date",
+       y = "Percent",
+       title = "Presidential Election National Polling Average",
+       subtitle = "Compared with Trump's Covid Approval")
 
 state_polls <- read_csv("presidential_poll_averages_2020 copy.csv", col_types = cols(
   cycle = col_double(),
@@ -153,7 +157,7 @@ state_polls <- read_csv("presidential_poll_averages_2020 copy.csv", col_types = 
 write_rds(state_polls, "swingstate_polls.rds")
 
 state_polls %>%
-  filter(state == "GA") %>%
+  filter(state == "WI") %>%
   ggplot(aes(x = type, y = value, fill = positive)) +
   geom_col() +
   scale_fill_manual(breaks = c(TRUE, FALSE),
@@ -165,4 +169,54 @@ state_polls %>%
        y = "Percent", 
        title = "Swing State Polling Averages \n Compared to 2020 Election Outcomes") +
   theme_minimal() +
-  theme(legend.position = "none")
+  theme(legend.position = "none") +
+  coord_flip()
+
+state_results <- read_rds("states.rds") %>%
+  mutate(state = NAME) %>%
+  select(state, geometry) %>%
+  inner_join(results_2016_2020 %>% 
+               select(state, margin_2020) %>%
+               mutate(state = state.name[match(state, state.abb)]),
+             by = "state") 
+
+state_results %>%
+  ggplot(aes(fill = margin_2020)) +
+  geom_sf(color = "lightgray") +
+  scale_color_gradientn(colors = c("firebrick", "firebrick", "pink", 
+                                   "lightblue", "navyblue", "navyblue"),
+                        values = c(0, 0.51, 0.550190599, 0.5501906, 
+                                   .59, 1),
+                        breaks = c(-20, -10, 0, 10, 20),
+                        labels = c(-20, -10, 0, 10, 20)) +
+  scale_fill_gradientn(colors = c("firebrick", "firebrick", "pink", 
+                                  "lightblue", "navyblue", "navyblue"),
+                        values = c(0, 0.49, 0.550190599, 0.5501906, 
+                                   .61, 1),
+                        breaks = c(-30, -20, -10, 0, 10, 20, 30),
+                        labels = c(-30, -20, -10, 0, 10, 20, 30),
+                       name = "Vote Margin \n (D)") +
+  theme_void() +
+  labs(title = "The 2020 U.S. Presidential Election")
+
+concern_economy <- read_csv("covid_concern_toplines.csv") %>%
+  filter(subject == "concern-economy") %>%
+  pivot_longer(cols = very_estimate:not_at_all_estimate,
+               names_to = "type",
+               values_to = "estimate") %>%
+  select(modeldate, type, estimate) %>%
+  mutate(modeldate = as.Date(modeldate, "%m/%d/%Y"))
+
+write_rds(concern_economy, "concern_economy.rds")
+
+concern_infected <- read_csv("covid_concern_toplines.csv") %>%
+  filter(subject == "concern-infected") %>%
+  pivot_longer(cols = very_estimate:not_at_all_estimate,
+               names_to = "type",
+               values_to = "estimate") %>%
+  select(modeldate, type, estimate) %>%
+  mutate(modeldate = as.Date(modeldate, "%m/%d/%Y"))
+
+write_rds(concern_infected, "concern_infected.rds")
+
+results_cases

@@ -4,6 +4,7 @@ library(tidyverse)
 library(tidycensus)
 library(shinythemes)
 library(sf)
+library(ggrepel)
 population <- read_rds("~/Projects/covid_politics/states.rds")
 counties_population <- read_rds("~/Projects/covid_politics/counties.rds")
 march <- read_rds("~/Projects/covid_politics/march.rds")
@@ -11,9 +12,12 @@ april <- read_rds("~/Projects/covid_politics/april.rds")
 may <- read_rds("~/Projects/covid_politics/may.rds")
 june <- read_rds("~/Projects/covid_politics/june.rds")
 total <- read_rds("~/Projects/covid_politics/total_filt.rds")
-counties_pop <- read_csv("~/Projects/covid_politics/covid_county_population_usafacts.csv")
 counties_cases <- read_rds("~/Projects/covid_politics/county_cases.rds")
 covid_approval <- read_rds("~/Projects/covid_politics/covid_approval.rds")
+swing_state <- read_rds("~/Projects/covid_politics/swingstate_polls.rds")
+economic_concern <- read_rds("~/Projects/covid_politics/concern_economy.rds")
+results_cases <- read_rds("~/Projects/covid_politics/results_cases.rds")
+infection_concern <- read_rds("~/Projects/covid_politics/concern_infected.rds")
 
 ui <- navbarPage(
     "Public Opinion, Now",
@@ -21,10 +25,11 @@ ui <- navbarPage(
              fluidPage(theme = shinytheme("flatly"),
                        titlePanel("The Spread of COVID-19"),
                        fluidRow(
-                           column(width = 6,
-                                  img(src = "new_cases.gif")),
-                           column(width = 6,
-                                  img(src = "states_cases.gif"))
+                           column(width = 5,
+                                  img(src = "new_cases.gif", height = 420))),
+                       fluidRow(
+                           column(width = 5,
+                                  img(src = "states_cases.gif", height = 420)))
                        ),
                        sidebarPanel(
                            sliderInput("dateInput",
@@ -43,10 +48,23 @@ ui <- navbarPage(
                        )
                      
                        
-             )),
+             ),
     tabPanel("Public Opinion",
              fluidPage(
                  titlePanel("Public Opinion"),
+                 sidebarPanel(
+                     selectInput(inputId = "concern", 
+                                 label = ("Select one:"), 
+                                 choices = list("Economic", 
+                                                "Infection"), 
+                                 selected = "Infection"),
+                     dateInput(inputId = "datepub", 
+                               label = "Choose end date:", 
+                               value = "2020-06-15", 
+                               min = "2020-02-20",
+                               max = "2020-11-15", 
+                               format = "yyyy-mm-dd")),
+                 mainPanel(plotOutput("ConcernPlot")),
                  mainPanel(
                      img(src = "trump_covid.gif")
                  ),
@@ -58,17 +76,14 @@ ui <- navbarPage(
                             checkboxInput("toggleDem", label = "Democrats", value = TRUE),
                             checkboxInput("toggleRep", label = "Republicans", value = TRUE),
                             checkboxInput("toggleInd", label = "Independents", value = FALSE)),
-                 fluidRow(
-                     column(width = 6,
-                            img(src = "natlvote.png", width = 728, height = 457)
-                 ))
+                 
              )
     ),
     tabPanel("Model",
              fluidPage(
                  titlePanel("Approval & Party ID"),
                  mainPanel(
-                            plotOutput("ScatterPlot", height = 350,
+                            plotOutput("ScatterPlot",
                                        hover = hoverOpts(id = "plot_hover"))
                  )    
                  ),
@@ -79,12 +94,33 @@ ui <- navbarPage(
                  ),
                  fluidRow(
                      column(width = 5,
-                            img(src = "correlation.png", width = 555, height = 504))
+                            img(src = "correlation.png", height = 400))
                  )
     ),
     tabPanel("Election",
              fluidPage(
                  titlePanel("The 2020 U.S. Election"),
+                 fluidRow(
+                     column(width = 5,
+                            img(src = "538avg.png", height = 420))),
+                 fluidRow(
+                     column(width = 5,
+                            img(src = "results.png", height = 420))),
+                 sidebarPanel(
+                     selectInput(inputId = "swing", 
+                                 label = ("Select Swing State:"), 
+                                 choices = list("Arizona" = "AZ", 
+                                                "Florida" = "FL",
+                                                "Georgia" = "GA",
+                                                "Michigan" = "MI",
+                                                "Nevada" = "NV",
+                                                "North Carolina" = "NC",
+                                                "Pennsylvania" = "PA",
+                                                "Wisconsin" = "WI"), 
+                                 selected = "Arizona")),
+                 mainPanel(
+                     plotOutput("SwingStatePlot")
+                 ),
                  sidebarPanel(
                      selectInput(inputId = "shift", 
                                           label = ("Select one:"), 
@@ -94,6 +130,7 @@ ui <- navbarPage(
                  mainPanel(
                      plotOutput("ElectionPlot")
                  ),
+                 
              )),
     tabPanel("About", 
              titlePanel("About"),
@@ -161,6 +198,21 @@ server <- function(input, output, session){
         
     })
     
+    output$ConcernPlot <- renderPlot({
+        if(input$concern == "Infection")
+               p <- infection_concern %>%
+                   filter(modeldate <= input$datepub) %>%
+                   ggplot(aes(x = modeldate, y = estimate, color = type)) +
+                    geom_line()
+        if(input$concern == "Economic")
+           p <- economic_concern %>%
+            filter(modeldate <= input$datepub) %>%
+            ggplot(aes(x = modeldate, y = estimate, color = type)) +
+        geom_line()
+        
+        p
+    })
+    
     output$ScatterPlot <- renderPlot({
         total %>%
             ggplot(aes(x = mean_democrat, y = approval_covid)) + 
@@ -225,6 +277,25 @@ server <- function(input, output, session){
                    theme_minimal())
         
         results_cases_plot
+    })
+    
+    output$SwingStatePlot <- renderPlot({
+        
+        swing_state %>%
+            filter(state == input$swing) %>%
+            ggplot(aes(x = type, y = value, fill = positive)) +
+            geom_col() +
+            scale_fill_manual(breaks = c(TRUE, FALSE),
+                              values = c("navyblue", "firebrick")) +
+            scale_x_discrete(labels = c("Polling Avg \n in March",
+                                        "Polling Avg \n in Nov.",
+                                        "Actual Margin")) +
+            labs(x = "Measure", 
+                 y = "Biden Margin (Percent)", 
+                 title = "Swing State Polling Averages \n Compared to 2020 Election Outcomes") +
+            theme_minimal() +
+            theme(legend.position = "none")
+        
     })
     
     output$ApprovalPlot <- renderPlot({

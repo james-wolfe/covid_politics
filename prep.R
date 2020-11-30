@@ -30,6 +30,7 @@ ns611 <- read_dta("./project/ns20200611.dta")
 ns618 <- read_dta("./project/ns20200618.dta")
 ns625 <- read_dta("./project/ns20200625.dta")
 
+
 march <- full_join(ns319, ns326) %>%
   select(state, census_region, extra_trump_corona, trump_biden, pid3, congress_district, news_sources_fox, extra_covid_close_schools, deportation, medicare_for_all, raise_upper_tax, minwage, environment, weight)
 april <- full_join(full_join(full_join(ns402, ns409), full_join(ns416, ns423)), ns430) %>% 
