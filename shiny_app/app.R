@@ -23,14 +23,45 @@ ui <- navbarPage(
     "Public Opinion, Now",
     tabPanel("Virus",
              fluidPage(theme = shinytheme("flatly"),
-                       titlePanel("The Spread of COVID-19"),
-                       fluidRow(
+                       titlePanel("The Spread of COVID-19 in the U.S."),
+                       fluidRow(style = 'padding:30px;',
+                           column(width = 7,
+                                  img(src = "new_cases.gif", height = 420)),
                            column(width = 5,
-                                  img(src = "new_cases.gif", height = 420))),
-                       fluidRow(
+                                  h3("Number of confirmed cases per day increasing sharply"),
+                                  p("As the animation on the left shows, the number of cases
+                                    per day has been increasing sharply as of late. The first peak
+                                    wave hit almost 50,000 cases per day, and the second peak hit
+                                    about 75,000 cases per day, whereas the new peak is reaching 
+                                    almost 200,000. But, an important thing 
+                                    to note is that the graph shows the number of confirmed cases
+                                    per day. For the first few months of the pandemic, the United
+                                    States had very limited testing capacity. It's estimated that a 
+                                    great deal of cases were never recorded during those first two peaks.")
+                                  )),
+                       fluidRow(style = 'padding:30px;',
+                            column(width = 5,
+                                   h3("Most populous states have the most cases"),
+                                   p("New York's (and New Jersey's, to a lesser extent) case count 
+                                     exploded toward the beginning of the pandemic, but in the summer,
+                                     California, Texas, and Florida surpassed New York's total case count.
+                                    Also during the summer, several states saw their curves flatten, 
+                                     possibly in part due to more people spending time outdoors. But the weather
+                                     isn't more hospitable in the summer in all states -- Florida and Texas, for example,
+                                     experience dreadfully hot summers that force many indoors.")
+                            ),
+                            column(width = 2),
                            column(width = 5,
                                   img(src = "states_cases.gif", height = 420)))
                        ),
+             h3("Number of cases per capita is another story"),
+             p("As we can see in the graph below, some regions have been hit particularly hard
+             when analyzing cases per 100,000 residents. North Dakota and South Dakota, which 
+             have relatively low populations, have extremely high numbers of cases per capita. 
+             Some less populous counties in the South, too, have high numbers of cases per capita.
+               Adjust to choose which date you'd like to look at, and whether you'd 
+               like to look at total cases or cases per 100,000 residents."),  
+             p(" "),
                        sidebarPanel(
                            sliderInput("dateInput",
                                        "Dates:",
@@ -52,10 +83,21 @@ ui <- navbarPage(
     tabPanel("Public Opinion",
              fluidPage(
                  titlePanel("Public Opinion"),
+                 p("Concern about getting coronavirus has fluctuated a great deal.
+                   As we can see from the graph below, few people were very concerned about 
+                   being infected in mid-February, but by mid-April, a majority of the country was at
+                   least somewhat concerned. A slightly concerning sign is that despite seeing surges
+                   in people who are very concerned about infection when there are outbreaks, 
+                   we see that concern subsides right after, even though the threat is still there.
+                   Concern may be a product of several things: raw case numbers, warnings from public health
+                   experts, and statements and actions from leaders like President Donald Trump, 
+                   who repeatedly urged citizens to not worry about contracting COVID-19.
+                   "),
+                 
                  sidebarPanel(
                      selectInput(inputId = "concern", 
                                  label = ("Select one:"), 
-                                 choices = list("Economic", 
+                                 choices = list("Economy", 
                                                 "Infection"), 
                                  selected = "Infection"),
                      dateInput(inputId = "datepub", 
@@ -65,9 +107,25 @@ ui <- navbarPage(
                                max = "2020-11-15", 
                                format = "yyyy-mm-dd")),
                  mainPanel(plotOutput("ConcernPlot")),
-                 mainPanel(
-                     img(src = "trump_covid.gif")
-                 ),
+                 fluidRow(style = 'padding:30px;',
+                          column(width = 7,
+                                 img(src = "trump_covid.gif", height = 420)),
+                          column(width = 5,
+                                 h3("Trump's response hasn't aged well"),
+                                 p("Despite seeing high approval ratings at the beginning of the crisis,
+                                   by June, Americans largely did not approve of President Trump's
+                                   coronavirus response, which has been widely panned by 
+                                   public health experts. However, we still notice partisan differences in
+                                   approval within this graph: more liberal states, like Vermont, strongly
+                                   disapprove of Trump's response, while more conservative states, like Wyoming
+                                   strongly approve.")
+                          )),
+                 h3("Partisan differences in grading Trump's response"),
+                 p("To investigate these aforementioned partisan differences, here I look
+                   at how people who identify as Democrats, Republicans, and Independents
+                   approve of Trump's handling of the coronavirus. Trump's approval from Republicans 
+                   has been remarkably static, while he has seen steadily declining approval from Democrats, and a
+                   more slight decline from Independents."),
                  mainPanel(
                             plotOutput("ApprovalPlot")
                             ),
@@ -87,12 +145,12 @@ ui <- navbarPage(
                                        hover = hoverOpts(id = "plot_hover"))
                  )    
                  ),
-                 fluidRow(
+                 fluidRow(style = 'padding:30px;',
                      column(width = 5,
                             verbatimTextOutput("hover_info")
                      )
                  ),
-                 fluidRow(
+                 fluidRow(style = 'padding:30px;',
                      column(width = 5,
                             img(src = "correlation.png", height = 400))
                  )
@@ -100,10 +158,10 @@ ui <- navbarPage(
     tabPanel("Election",
              fluidPage(
                  titlePanel("The 2020 U.S. Election"),
-                 fluidRow(
-                     column(width = 5,
+                 fluidRow(style = 'padding:30px;',
+                     column(width = 7,
                             img(src = "538avg.png", height = 420))),
-                 fluidRow(
+                 fluidRow(style = 'padding:30px;',
                      column(width = 5,
                             img(src = "results.png", height = 420))),
                  sidebarPanel(
@@ -134,18 +192,23 @@ ui <- navbarPage(
              )),
     tabPanel("About", 
              titlePanel("About"),
-             h3("Project Background and Motivations"),
-             p("I'm getting my data from Nationscape, 
-               a massive survey of Americans on social and political sentiment,
-               and from the U.S. Census, through the tidycensus package. I hope
-               to find some interesting results and correlations in the 
-               Nationscape dataset and create some visualizations with tidycensus."),
+             h3("Background"),
+             p("I sought to better understand the United States' national political effects 
+             of a virus that has ravaged the whole globe. I did this because I am
+             deeply interested in U.S. politics, but I recognize and want to reinforce 
+             that the scope of Covid's effects extends far beyond U.S. politics: its more serious
+             effects are much more violent and tragic. Cases and deaths are not just numbers or plots.
+             I grieve for every person and family affected by the virus that has so upended
+             our lives. "),
+             p(
+             "I got survey data from Nationscape and FiveThirtyEight, 
+             data on Covid from USAFacts, and data on elections from MIT."),
              h3("About Me"),
              p("My name is James Wolfe and I study Mathematics. 
              You can reach me at jameswolfe@college.harvard.edu."),
              h3("Repo"),
              p("The link to my repo is 
-               https://github.com/james-wolfe/FinalProject.")))
+               https://github.com/james-wolfe/covid_politics.")))
 
 
 server <- function(input, output, session){
@@ -203,12 +266,40 @@ server <- function(input, output, session){
                p <- infection_concern %>%
                    filter(modeldate <= input$datepub) %>%
                    ggplot(aes(x = modeldate, y = estimate, color = type)) +
-                    geom_line()
-        if(input$concern == "Economic")
+                    geom_line()+
+                theme_minimal() +
+                scale_color_manual(values = c("not_at_all_estimate" = "navyblue",
+                                              "not_very_estimate" = "blue",
+                                              "somewhat_estimate" = "purple",
+                                              "very_estimate" = "red"),
+                                   labels = c("Not at all",
+                                              "Not very",
+                                              "Somewhat",
+                                              "Very"),
+                                   name = "Level of Concern") +
+                labs(x = "Date",
+                     y = "Percent",
+                     title = "How concerned are you about being infected with Covid?",
+                     subtitle = "Polling averages")
+        if(input$concern == "Economy")
            p <- economic_concern %>%
             filter(modeldate <= input$datepub) %>%
             ggplot(aes(x = modeldate, y = estimate, color = type)) +
-        geom_line()
+        geom_line() +
+                theme_minimal() +
+                scale_color_manual(values = c("not_at_all_estimate" = "navyblue",
+                                              "not_very_estimate" = "blue",
+                                              "somewhat_estimate" = "purple",
+                                              "very_estimate" = "red"),
+                                   labels = c("Not at all",
+                                              "Not very",
+                                              "Somewhat",
+                                              "Very"),
+                                   name = "Level of Concern") +
+                labs(x = "Date",
+                     y = "Percent",
+                     title = "How concerned are you about the economy?",
+                     subtitle = "Polling averages")
         
         p
     })
@@ -306,22 +397,22 @@ server <- function(input, output, session){
         if(input$toggleDem)
             p <- p + geom_line(aes(x = as.Date(modeldate, "%m/%d/%Y"),
                                    y = D),
-                               color = "blue", 
+                               color = "navyblue", 
                                size = 1.2) +
                 geom_text(x = as.Date("10/1/2020", "%m/%d/%Y"),
                           y = 14,
                           label = "Democrats",
-                          color = "blue")
+                          color = "navyblue")
         
         if(input$toggleRep)
             p <- p + geom_line(aes(x = as.Date(modeldate, "%m/%d/%Y"),
                                    y = R),
-                               color = "red", 
+                               color = "firebrick", 
                                size = 1.2) +
                 geom_text(x = as.Date("4/22/2020", "%m/%d/%Y"),
                           y = 81.2,
                           label = "Republicans",
-                          color = "red")
+                          color = "firebrick")
         
         if(input$toggleInd)
             p <- p + geom_line(aes(x = as.Date(modeldate, "%m/%d/%Y"),
