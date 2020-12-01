@@ -112,8 +112,8 @@ ui <- navbarPage(
                  mainPanel(plotOutput("ConcernPlot")),
                  fluidRow(style = 'padding:30px;',
                           column(width = 7,
-                                 img(src = "trump_covid.gif", height = 420)),
-                          column(width = 5,
+                                 img(src = "trump_covid.gif", height = 500)),
+                          column(width = 4,
                                  h3("Trump's response hasn't aged well"),
                                  p("Despite seeing high approval ratings at the beginning of the crisis,
                                    by June, Americans largely did not approve of President Trump's
@@ -142,29 +142,66 @@ ui <- navbarPage(
     ),
     tabPanel("Model",
              fluidPage(
-                 titlePanel("Approval & Party ID"),
+                 titlePanel("Modeling Partisanship"),
                  mainPanel(
                             plotOutput("ScatterPlot",
                                        hover = hoverOpts(id = "plot_hover"))
-                 )    
                  ),
+                 sidebarPanel(h3("Approval tracks closely with partisan makeup"),
+                              p("Looking now at congressional districts, we see that 
+                                the proportion of Democrats in a district is highly
+                                predictive of the district's approval rating of the
+                                President on Covid. Even though districts have experienced
+                                wildly different Covid outbreaks, most seem to follow the trend
+                                pretty closely. I build a model describing this relationship
+                                in more detail in the next section. Put your mouse over any
+                                point in the plot on the left to see which congressional district
+                                you are looking at.")),
                  fluidRow(style = 'padding:30px;',
                      column(width = 5,
                             verbatimTextOutput("hover_info")
                      )
                  ),
                  fluidRow(style = 'padding:30px;',
+                          width = 10,
+                          h3("The Model"),
+                          p(" ~ Stuff About the Model ~" )),
+                 fluidRow(style = 'padding:30px;',
+                    column(width = 7,
+                           h3("Correlations"),
+                           p("On the right is a figure showing the correlations between different
+                             survey responses. ~ More stuff about the figure ~ ")),
                      column(width = 5,
                             img(src = "correlation.png", height = 400))
                  )
-    ),
+    )),
     tabPanel("Election",
              fluidPage(
                  titlePanel("The 2020 U.S. Election"),
                  fluidRow(style = 'padding:30px;',
                      column(width = 7,
-                            img(src = "538avg.png", height = 420))),
+                            img(src = "538avg.png", height = 420)),
+                     column(width = 5,
+                            h3("The Polls"),
+                            p("Here we can see polling averages for Biden and Trump from about
+                              March on, compared with their actual vote margins. There is a 
+                              noticeable shift from March onwards in Trump's support.
+                              Several theories have been peddled on why this polling shift occured,
+                              and why Trump's support was underestimated in the end. The coronavirus
+                              likely had something to do with it. "))
+                 ),
                  fluidRow(style = 'padding:30px;',
+                     column(width = 7,
+                            h3("The Election"),
+                            p("On the right is a depiction of the 2020 Presidential
+                              Election Results by state, where a red state indicates a Trump
+                              victory, and a blue state indicates a Biden victory, where light red
+                              and light blue indicate close Trump and Biden wins, respectively.
+                              The eight closest states -- Arizona, Florida, Georgia, Michigan, Nevada,
+                              North Carolina, Pennsylvania, and Wisconsin -- decided the outcome of the 
+                              national election and were (for the most part) the center of attention for 
+                              each campaign. Whether Covid impacted the outcomes of these states
+                              is a question crucial to understanding how this election went down.")),
                      column(width = 5,
                             img(src = "results.png", height = 420))),
                  sidebarPanel(
@@ -200,9 +237,7 @@ ui <- navbarPage(
              of a virus that has ravaged the whole globe. I did this because I am
              deeply interested in U.S. politics, but I recognize and want to reinforce 
              that the scope of Covid's effects extends far beyond U.S. politics: its more serious
-             effects are much more violent and tragic. Cases and deaths are not just numbers or plots.
-             I grieve for every person and family affected by the virus that has so upended
-             our lives. "),
+             effects are much more violent and tragic. Cases and deaths are not just numbers or plots."),
              p(
              "I got survey data from Nationscape and FiveThirtyEight, 
              data on Covid from USAFacts, and data on elections from MIT."),
@@ -229,7 +264,7 @@ server <- function(input, output, session){
                    ggplot(aes(fill = cases * 100000 / value, 
                               color = cases * 100000 / value)) + 
                    geom_sf(aes(geometry = geometry)) + 
-                   labs(title = "Covid cases per papita by county",
+                   labs(title = "Covid cases per 100,000 residents, by county",
                         fill = "Cases per \n 100,000") +
                    theme_void() + 
                    scale_colour_gradientn(colors = c("black", "red", "lightpink"),
@@ -244,7 +279,7 @@ server <- function(input, output, session){
                    filter(date == input$dateInput) %>%
                    ggplot(aes(fill = cases, color = cases)) + 
                    geom_sf(aes(geometry = geometry)) + 
-                   labs(title = "Covid cases by county",
+                   labs(title = "Total Covid cases, by county",
                         fill = "Cases") +
                    theme_void() + 
                    scale_colour_gradientn(colors = c("black", "firebrick4", "red", 

@@ -12,23 +12,24 @@ library(janitor)
 library(viridis)
 library(ggrepel)
 library(directlabels)
+library(rstanarm)
 
 
-ns319 <- read_dta("./project/ns20200319.dta")
-ns326 <- read_dta("./project/ns20200326.dta")
-ns402 <- read_dta("./project/ns20200402.dta")
-ns409 <- read_dta("./project/ns20200409.dta")
-ns416 <- read_dta("./project/ns20200416.dta")
-ns423 <- read_dta("./project/ns20200423.dta")
-ns430 <- read_dta("./project/ns20200430.dta")
-ns507 <- read_dta("./project/ns20200507.dta")
-ns514 <- read_dta("./project/ns20200514.dta")
-ns521 <- read_dta("./project/ns20200521.dta")
-ns528 <- read_dta("./project/ns20200528.dta")
-ns604 <- read_dta("./project/ns20200604.dta")
-ns611 <- read_dta("./project/ns20200611.dta")
-ns618 <- read_dta("./project/ns20200618.dta")
-ns625 <- read_dta("./project/ns20200625.dta")
+ns319 <- read_dta("./raw_data/ns20200319.dta")
+ns326 <- read_dta("./raw_data/ns20200326.dta")
+ns402 <- read_dta("./raw_data/ns20200402.dta")
+ns409 <- read_dta("./raw_data/ns20200409.dta")
+ns416 <- read_dta("./raw_data/ns20200416.dta")
+ns423 <- read_dta("./raw_data/ns20200423.dta")
+ns430 <- read_dta("./raw_data/ns20200430.dta")
+ns507 <- read_dta("./raw_data/ns20200507.dta")
+ns514 <- read_dta("./raw_data/ns20200514.dta")
+ns521 <- read_dta("./raw_data/ns20200521.dta")
+ns528 <- read_dta("./raw_data/ns20200528.dta")
+ns604 <- read_dta("./raw_data/ns20200604.dta")
+ns611 <- read_dta("./raw_data/ns20200611.dta")
+ns618 <- read_dta("./raw_data/ns20200618.dta")
+ns625 <- read_dta("./raw_data/ns20200625.dta")
 
 
 march <- full_join(ns319, ns326) %>%
@@ -143,10 +144,6 @@ poll_vs_cases %>%
   geom_smooth(method = "lm", se = FALSE)
 
 
-
-
-
-
 total %>%
   filter(extra_trump_corona != 999) %>%
   group_by(congress_district) %>%
@@ -172,111 +169,21 @@ total %>%
                        labels = c("South", "West", "Northeast", "Midwest")) +
   scale_size_continuous(name = "Number of \n Respondents")
 
-
-
-total %>%
+total_model <- total %>%
   filter(extra_trump_corona != 999) %>%
   group_by(congress_district) %>%
   summarize(approval_covid = mean(extra_trump_corona %in% c(1, 2), na.rm = TRUE),
-            mean_republican = mean(pid3 == 3, na.rm = TRUE), 
-            .groups = "drop") %>%
-  filter(approval_covid != 0)
-
-total %>%
-  select(pid3)
-
-population_county %>%
-  filter(NAME == "Miami-Dade County, Florida") %>%
-  ggplot()
-
-total %>%
-  filter(extra_trump_corona != 999) %>%
-  group_by(congress_district) %>%
-  summarize(approval_covid = mean(extra_trump_corona %in% c(1, 2), na.rm = TRUE),
-            mean_environment = mean(news_sources_fox == 1, na.rm = TRUE), 
+            mean_democrat = mean(pid3 == 1, na.rm = TRUE), 
             region = as.factor(round(mean(census_region, na.rm = TRUE))),
             number = n(),
             .groups = "drop") %>%
-  slice(-1) %>%
-  filter(approval_covid != 0) %>%
-  ggplot(aes(x = mean_environment, y = approval_covid)) + 
-  geom_point(aes(color = region, size = number),
-             alpha = 0.7) + 
-  geom_smooth(method = lm, se = FALSE, color = "royalblue", alpha = 0.8) +
-  theme_minimal() + 
-  labs(x = "% Environment Support",
-       y = "Approval on Covid",
-       title = "Party ID Makeup Predicts Trump's Approval on Covid",
-       subtitle = "By congressional district") + 
-  scale_x_continuous(labels = scales::percent_format()) + 
-  scale_y_continuous(labels = scales::percent_format()) + 
-  scale_color_discrete(name = "Region",
-                       labels = c("South", "West", "Northeast", "Midwest")) +
-  scale_size_continuous(name = "Number of \n Respondents")
+  slice(-1)
 
-march_cov <- march %>%
-  select(state, census_region, extra_trump_corona, trump_biden) %>%
-  filter(extra_trump_corona != 999) %>%
-  group_by(state) %>%
-  summarize(approval_covid = mean(extra_trump_corona %in% c(1, 2), na.rm = TRUE),
-            mean_democrat = mean(trump_biden == 2, na.rm = TRUE), 
-            region = as.factor(round(mean(census_region, na.rm = TRUE))),
-            number = n(),
-            .groups = "drop")
+fit <- stan_glm(data = total_model,
+                formula = approval_covid ~ mean_democrat,
+                refresh = 0)
 
-april_cov <- april %>%
-  select(state, census_region, extra_trump_corona, trump_biden) %>%
-  filter(extra_trump_corona != 999) %>%
-  group_by(state) %>%
-  summarize(approval_covid = mean(extra_trump_corona %in% c(1, 2), na.rm = TRUE),
-            mean_democrat = mean(trump_biden == 2, na.rm = TRUE), 
-            region = as.factor(round(mean(census_region, na.rm = TRUE))),
-            number = n(),
-            .groups = "drop")
-
-may_cov <- may %>%
-  select(state, census_region, extra_trump_corona, trump_biden) %>%
-  filter(extra_trump_corona != 999) %>%
-  group_by(state) %>%
-  summarize(approval_covid = mean(extra_trump_corona %in% c(1, 2), na.rm = TRUE),
-            mean_democrat = mean(trump_biden == 2, na.rm = TRUE), 
-            region = as.factor(round(mean(census_region, na.rm = TRUE))),
-            number = n(),
-            .groups = "drop")
-
-june_cov <- june %>%
-  select(state, census_region, extra_trump_corona, trump_biden) %>%
-  filter(extra_trump_corona != 999) %>%
-  group_by(state) %>%
-  summarize(approval_covid = mean(extra_trump_corona %in% c(1, 2), na.rm = TRUE),
-            mean_democrat = mean(trump_biden == 2, na.rm = TRUE), 
-            region = as.factor(round(mean(census_region, na.rm = TRUE))),
-            number = n(),
-            .groups = "drop")
-
-cov_animate <- full_join(full_join(march_cov, april_cov), full_join(may_cov, june_cov)) %>% filter(number != 1)
-
-cov_animate
-cov_animate %>%
-  mutate(month = c(rep("March", times = 51), 
-                   rep("April", times = 51), 
-                   rep("May", times = 51),
-                   rep("June", times = 51))) %>%
-  ggplot(aes(x = approval_covid, y = mean_democrat, color = region, size = number)) +
-  geom_point() +
-  theme_classic() + 
-  transition_states(month, transition_length = 1, state_length = 1) +
-  labs(title = 'Month: {closest_state}',
-       x = "% Trump Approval on Covid",
-       y = "% Biden Support")
-
-total_cov %>%
-  
-  
-total_new <- total %>%
-  select(trump_biden, news_sources_fox) %>%
-  filter(trump_biden %in% c(1, 2),
-         news_sources_fox %in% c(1, 2))
+print(fit, digits = 3)
 
 
 population <- get_decennial(geography = "state",
@@ -301,51 +208,52 @@ pop <- states_population %>%
   select(state, geometry)
 
 survey_march <- march %>%
-  group_by(state) %>%
   filter(extra_trump_corona != 999) %>%
-  summarize(mean = mean(extra_trump_corona %in% c(1, 2), na.rm = TRUE), .groups = "drop") 
+  mutate(trump_covid = ifelse(extra_trump_corona %in% c(1,2), 1, 0)) %>%
+  mutate(trump_covid_weights = trump_covid * weight) %>%
+  group_by(state) %>%
+  summarize(mean = sum(trump_covid_weights) / sum(weight), .groups = "drop") 
 
-survey_march <- inner_join(survey_march, pop, by = "state")
+survey_march <- inner_join(survey_march, pop, by = "state") %>%
+  mutate(month = 3)
 
 survey_april <- april %>%
-  group_by(state) %>%
   filter(extra_trump_corona != 999) %>%
-  summarize(mean = mean(extra_trump_corona %in% c(1, 2), na.rm = TRUE), .groups = "drop") 
+  mutate(trump_covid = ifelse(extra_trump_corona %in% c(1,2), 1, 0)) %>%
+  mutate(trump_covid_weights = trump_covid * weight) %>%
+  group_by(state) %>%
+  summarize(mean = sum(trump_covid_weights) / sum(weight), .groups = "drop") 
 
-survey_april <- inner_join(survey_april, pop, by = "state")
+survey_april <- inner_join(survey_april, pop, by = "state") %>%
+  mutate(month = 4)
 
 survey_may <- may %>%
-  group_by(state) %>%
   filter(extra_trump_corona != 999) %>%
-  summarize(mean = mean(extra_trump_corona %in% c(1, 2), na.rm = TRUE), .groups = "drop") 
+  mutate(trump_covid = ifelse(extra_trump_corona %in% c(1,2), 1, 0)) %>%
+  mutate(trump_covid_weights = trump_covid * weight) %>%
+  group_by(state) %>%
+  summarize(mean = sum(trump_covid_weights) / sum(weight), .groups = "drop") 
 
-survey_may <- inner_join(survey_may, pop, by = "state")
+survey_may <- inner_join(survey_may, pop, by = "state") %>%
+  mutate(month = 5)
 
 survey_june <- june %>%
-  group_by(state) %>%
   filter(extra_trump_corona != 999) %>%
-  summarize(mean = mean(extra_trump_corona %in% c(1, 2), na.rm = TRUE), .groups = "drop") 
+  mutate(trump_covid = ifelse(extra_trump_corona %in% c(1,2), 1, 0)) %>%
+  mutate(trump_covid_weights = trump_covid * weight) %>%
+  group_by(state) %>%
+  summarize(mean = sum(trump_covid_weights) / sum(weight), .groups = "drop") 
 
-survey_june <- inner_join(survey_june, pop, by = "state")
+survey_june <- inner_join(survey_june, pop, by = "state") %>%
+  mutate(month = 6)
 
 
-survey <- full_join(full_join(survey_march, survey_april), full_join(survey_may, survey_june))
+survey <- full_join(full_join(survey_march, survey_april), full_join(survey_may, survey_june)) %>%
+  filter(state != "DC")
 
-survey
-
-survey <- survey %>%
-  filter(state != "DC") %>%
-  mutate(month = c(rep("March", times = 50), 
-                   rep("April", times = 50), 
-                   rep("May", times = 50),
-                   rep("June", times = 50))) %>%
-  mutate(month_1 = c(rep(3, times = 50), 
-                     rep(4, times = 50), 
-                     rep(5, times = 50),
-                     rep(6, times = 50)))
 
 q <- inner_join(pop, survey, by = "state") %>%
-  arrange(month_1) %>%
+  arrange(month) %>%
   rename(geometry = geometry.x) %>%
   ggplot(aes(fill = mean * 100)) +
   geom_sf() + 
@@ -354,12 +262,10 @@ q <- inner_join(pop, survey, by = "state") %>%
   labs(title = "Trump's Approval on Covid-19",
        fill = "Approval \n (in %)") +
   theme_void() +
-  transition_states(month_1, transition_length = 1, state_length = 0.5) +
+  transition_states(month, transition_length = 1, state_length = 0.5) +
   labs(subtitle = 'Month: 0{closest_state}/2020')
 
 anim_save("trump_covid.gif", q)
-
-survey
 
 survey %>%
   ggplot(aes(fill = mean * 100)) +
