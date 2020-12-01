@@ -1,6 +1,4 @@
 *.Rproj
-*.csv
-*.dta
 *.DS_Store
 
 # History files

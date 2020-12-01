@@ -219,16 +219,15 @@ ui <- navbarPage(
                  mainPanel(
                      plotOutput("SwingStatePlot")
                  ),
-                 sidebarPanel(
-                     selectInput(inputId = "shift", 
-                                          label = ("Select one:"), 
-                                          choices = list("Democratic Shift" = "shift", 
-                                                         "2020 Democratic Margin" = "margin_2020"), 
-                                          selected = "Democratic Shift")),
                  mainPanel(
                      plotOutput("ElectionPlot")
                  ),
-                 
+                 sidebarPanel(
+                     selectInput(inputId = "shift", 
+                                 label = ("Select one:"), 
+                                 choices = list("Democratic Shift" = "shift", 
+                                                "2020 Democratic Margin" = "margin_2020"), 
+                                 selected = "Democratic Shift"))
              )),
     tabPanel("About", 
              titlePanel("About"),
