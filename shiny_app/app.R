@@ -37,7 +37,10 @@ ui <- navbarPage(
                                     to note is that the graph shows the number of confirmed cases
                                     per day. For the first few months of the pandemic, the United
                                     States had very limited testing capacity. It's estimated that a 
-                                    great deal of cases were never recorded during those first two peaks.")
+                                    great deal of cases were never recorded during those first two peaks
+                                    (and even that a great, but lesser, amount of cases are still not
+                                    being recorded now). The number of cases that have been missed is a subject of
+                                    much debate.")
                                   )),
                        fluidRow(style = 'padding:30px;',
                             column(width = 5,
