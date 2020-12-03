@@ -1,0 +1,12 @@
+name: covid_politics
+title: covid_politics
+username:
+account: jamespw
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 3342733
+bundleId: 3936330
+url: https://jamespw.shinyapps.io/covid_politics/
+when: 1606967786.34026
+asMultiple: FALSE
+asStatic: FALSE

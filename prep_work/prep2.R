@@ -1,7 +1,7 @@
 library(readr)
 library(tidyverse)
 
-results2020 <- read_csv("2020results.csv", col_types = cols(
+results2020 <- read_csv("raw_data/2020results.csv", col_types = cols(
   state = col_character(),
   trump_2020 = col_double(),
   biden_2020 = col_double()
@@ -9,7 +9,7 @@ results2020 <- read_csv("2020results.csv", col_types = cols(
 
 results_2016_2020
 
-results2016 <- read_csv("1976-2016-president.csv", col_types = cols(
+results2016 <- read_csv("raw_data/1976-2016-president.csv", col_types = cols(
   year = col_double(),
   state = col_character(),
   state_po = col_character(),
@@ -48,7 +48,7 @@ results_2016_2020 <-
          shift = margin_2020 - margin_2016) %>%
   select(-total_2016)
 
-cases <- read_rds("cases_state.rds")
+cases <- read_rds("shiny_app/clean_data/cases_state.rds")
 
 results_cases <- results_2016_2020 %>%
   inner_join(cases, by = "state")
@@ -56,7 +56,7 @@ results_cases <- results_2016_2020 %>%
 write_rds(results_cases, "results_cases.rds")
 
 
-approval <- read_csv("covid_approval_toplines.csv") 
+approval <- read_csv("raw_data/covid_approval_toplines.csv") 
 
 approval
 View(approval %>%
@@ -77,7 +77,7 @@ approval_all <- approval %>%
               names_from = "party") %>%
   select(modeldate, all)
 
-natl_polls <- read_csv("presidential_poll_averages_2020 copy.csv", col_types = cols(
+natl_polls <- read_csv("raw_data/presidential_poll_averages_2020 copy.csv", col_types = cols(
   cycle = col_double(),
   state = col_character(),
   modeldate = col_character(),
@@ -107,9 +107,9 @@ natl_polls %>%
                      name = "Estimate",
                      labels = c("Biden Polling Avg", "Trump Polling Avg", 
                                 "Trump Covid Approval")) + 
-  geom_hline(yintercept = 51.1, color = "navyblue", alpha = 0.7, lty = "dashed") +
-  geom_hline(yintercept = 47.7, color = "red", alpha = 0.7, lty = "dashed") +
-  annotate(geom = "text", x = as.Date("8/15/20", "%m/%d/%y"), y = 47.2, 
+  geom_hline(yintercept = 51.3, color = "navyblue", alpha = 0.7, lty = "dashed") +
+  geom_hline(yintercept = 47, color = "red", alpha = 0.7, lty = "dashed") +
+  annotate(geom = "text", x = as.Date("8/15/20", "%m/%d/%y"), y = 47.35, 
            label = "Actual Trump Vote Share", color = "firebrick4", size = 3) +
   annotate(geom = "text", x = as.Date("8/15/20", "%m/%d/%y"), y = 51.65, 
            label = "Actual Biden Vote Share", color = "navyblue", size = 3) +

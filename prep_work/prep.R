@@ -32,6 +32,8 @@ ns618 <- read_dta("./raw_data/ns20200618.dta")
 ns625 <- read_dta("./raw_data/ns20200625.dta")
 
 
+# Here I full_join all these together because I didn't really know how else to get them all in one place
+
 march <- full_join(ns319, ns326) %>%
   select(state, census_region, extra_trump_corona, trump_biden, pid3, congress_district, news_sources_fox, extra_covid_close_schools, deportation, medicare_for_all, raise_upper_tax, minwage, environment, weight)
 april <- full_join(full_join(full_join(ns402, ns409), full_join(ns416, ns423)), ns430) %>% 
@@ -178,6 +180,10 @@ total_model <- total %>%
             number = n(),
             .groups = "drop") %>%
   slice(-1)
+
+total_model
+
+write_rds(total_model, "total_filt.rds")
 
 fit <- stan_glm(data = total_model,
                 formula = approval_covid ~ mean_democrat,
@@ -633,7 +639,7 @@ total <- read_dta("total_1.dta") %>%
 
 
 
-write_rds(total, "total_filt.rds")
+write_rds(total_model, "total_filt.rds")
 
 counties <- read_rds("counties.rds")
 
