@@ -14,6 +14,7 @@ library(ggrepel)
 library(directlabels)
 library(rstanarm)
 
+# I'm reading in all the Nationscape data here. What a mess.
 
 ns319 <- read_dta("./raw_data/ns20200319.dta")
 ns326 <- read_dta("./raw_data/ns20200326.dta")
@@ -32,7 +33,8 @@ ns618 <- read_dta("./raw_data/ns20200618.dta")
 ns625 <- read_dta("./raw_data/ns20200625.dta")
 
 
-# Here I full_join all these together because I didn't really know how else to get them all in one place
+# Here I full_join all these together because I didn't really know how else to
+# get them all in one place
 
 march <- full_join(ns319, ns326) %>%
   select(state, census_region, extra_trump_corona, trump_biden, pid3, congress_district, news_sources_fox, extra_covid_close_schools, deportation, medicare_for_all, raise_upper_tax, minwage, environment, weight)
@@ -42,6 +44,10 @@ may <- full_join(full_join(ns507, ns514), full_join(ns521, ns528)) %>%
   select(state, census_region, extra_trump_corona, trump_biden, pid3, congress_district, news_sources_fox, extra_covid_socialize_no_dist, extra_covid_close_schools, deportation, medicare_for_all, raise_upper_tax, minwage, environment, weight)
 june <- full_join(full_join(ns604, ns611), full_join(ns618, ns625)) %>%
   select(state, census_region, extra_trump_corona, trump_biden, pid3, congress_district, news_sources_fox, extra_covid_socialize_no_dist, extra_covid_close_schools, deportation, medicare_for_all, raise_upper_tax, minwage, environment, weight)
+
+# Writing my rds files early on so I can just read them when I need in this prep
+# file or the other. I separate by month here because the Trump approval plot is
+# an animation that depends on time changing.
 
 write_rds(march, "march.rds")
 write_rds(april, "april.rds")
@@ -63,7 +69,9 @@ counties_population <- get_decennial(geography = "county",
 write_rds(states_population, "states.rds")
 write_rds(counties_population, "counties.rds")
 
-
+# I had to get a little crafty here, because I forgot some pivot_wider
+# techniques. I'm basically trying to get point margins for both March and
+# November from polling averages. This is for the polling averages plot.
 
 march_3_biden <- read_csv("presidential_poll_averages_2020 copy.csv") %>%
   filter(modeldate == "3/3/2020") %>%
@@ -73,6 +81,8 @@ march_3_biden <- read_csv("presidential_poll_averages_2020 copy.csv") %>%
   slice(1:33) %>%
   rename(biden_mar = `Joseph R. Biden Jr.`) %>%
   select(state, modeldate, biden_mar)
+
+# I replicate this technique for all further ones.
 
 march_3_trump <- read_csv("presidential_poll_averages_2020 copy.csv") %>%
   filter(modeldate == "3/3/2020") %>%
@@ -84,7 +94,6 @@ march_3_trump <- read_csv("presidential_poll_averages_2020 copy.csv") %>%
   select(state, modeldate, trump_mar)
 
 march_3 <- inner_join(march_3_biden, march_3_trump, by = c("state", "modeldate"))
-
 
 nov_3_biden <- read_csv("presidential_poll_averages_2020 copy.csv") %>%
   filter(modeldate == "11/3/2020") %>%
@@ -113,15 +122,18 @@ state_pop <-
   mutate(state = state.abb[match(NAME, state.name)]) %>%
   select(state, value, -geometry)
 
-cases
+# Here I am getting the number of cases in each state. I use mean in the
+# summarize because they're all the same!
 
 cases_state <- cases %>%
   filter(date == "11/3/20") %>%
   group_by(state) %>%
   summarize(mean = mean(cases))
 
-cases_state
 write_rds(cases_state, "cases_state.rds")
+
+# Now this is for the swing states.
+
 poll_vs_cases <- pct_changes %>%
   filter(state != "National") %>%
   mutate(biden_diff_mar = biden_mar - trump_mar,
@@ -131,6 +143,7 @@ poll_vs_cases <- pct_changes %>%
   inner_join(cases_state, by = "state") %>%
   inner_join(state_pop, by = "state")
 
+# Here I'm just experimenting.
 
 poll_vs_cases %>%
   ggplot(aes(x = mean / value, y = biden_diff_overall, color = biden_diff_nov, size = value)) +
@@ -140,11 +153,14 @@ poll_vs_cases %>%
                         colors = c("red", "purple", "blue")) + 
   theme_minimal()
 
+# Again, more experimenting.
+
 poll_vs_cases %>%
   ggplot(aes(x = mean, y = biden_diff_overall, size = value, color = biden_diff_nov)) +
   geom_point() +
   geom_smooth(method = "lm", se = FALSE)
 
+# Experiments! Don't mind this.
 
 total %>%
   filter(extra_trump_corona != 999) %>%
@@ -171,19 +187,33 @@ total %>%
                        labels = c("South", "West", "Northeast", "Midwest")) +
   scale_size_continuous(name = "Number of \n Respondents")
 
+# Here I'm cleaning the Nationscape data for use in the scatterplot (the one in
+# the model section)
+
 total_model <- total %>%
+  
+  # Here I exclude non-responses to the question.
+  
   filter(extra_trump_corona != 999) %>%
   group_by(congress_district) %>%
+  
+  # Here I add up the number of times a respondent said they strongly or
+  # somewhat approve of Trump's handling, corresponds to 1 or 2.
+  
   summarize(approval_covid = mean(extra_trump_corona %in% c(1, 2), na.rm = TRUE),
             mean_democrat = mean(pid3 == 1, na.rm = TRUE), 
+            
+            # Region is numerical, so I take the mean, then set it to a factor
+            # for later use.
+            
             region = as.factor(round(mean(census_region, na.rm = TRUE))),
             number = n(),
             .groups = "drop") %>%
   slice(-1)
 
-total_model
-
 write_rds(total_model, "total_filt.rds")
+
+# Testing out the model to be used later.
 
 fit <- stan_glm(data = total_model,
                 formula = approval_covid ~ mean_democrat,
@@ -192,26 +222,14 @@ fit <- stan_glm(data = total_model,
 print(fit, digits = 3)
 
 
-population <- get_decennial(geography = "state",
-                            variables = "P001001",
-                            year = 2010,
-                            geometry = TRUE, 
-                            shift_geo = TRUE) 
-
-pop <- population %>%
-  rename(state = NAME) %>%
-  mutate(state = state.abb[match(state, state.name)]) %>%
-  filter(! GEOID %in% c(11, 72)) %>%
-  select(state, geometry) 
-
-cor(total_new, method = c("pearson", "kendall", "spearman"))
-
-
 pop <- states_population %>%
   rename(state = NAME) %>%
   mutate(state = state.abb[match(state, state.name)]) %>%
   filter(! GEOID %in% c(11, 72)) %>%
   select(state, geometry)
+
+# Here I attempt to manually weight the data, by counting each person's support
+# vote (which would otherwise be 1) as their weight, then summing all weights.
 
 survey_march <- march %>%
   filter(extra_trump_corona != 999) %>%
@@ -219,6 +237,9 @@ survey_march <- march %>%
   mutate(trump_covid_weights = trump_covid * weight) %>%
   group_by(state) %>%
   summarize(mean = sum(trump_covid_weights) / sum(weight), .groups = "drop") 
+
+# I do this for each month individually because I want a graphic displaying the
+# approval in different months.
 
 survey_march <- inner_join(survey_march, pop, by = "state") %>%
   mutate(month = 3)
@@ -257,6 +278,8 @@ survey_june <- inner_join(survey_june, pop, by = "state") %>%
 survey <- full_join(full_join(survey_march, survey_april), full_join(survey_may, survey_june)) %>%
   filter(state != "DC")
 
+# Here I finally save the gif for use in the Shiny app! Had to try anim_save
+# because the other functions I knew of weren't working.
 
 q <- inner_join(pop, survey, by = "state") %>%
   arrange(month) %>%
@@ -273,6 +296,8 @@ q <- inner_join(pop, survey, by = "state") %>%
 
 anim_save("trump_covid.gif", q)
 
+# Experimenting, don't mind this!
+
 survey %>%
   ggplot(aes(fill = mean * 100)) +
   geom_sf(geometry = "geometry") + 
@@ -283,6 +308,7 @@ survey %>%
   theme_void() + 
   transition_states(month, transition_length = 1, state_length = 1)
 
+# More experimenting!
 
 total_cov %>%
   pivot_longer(cols = c(approval_covid, mean_trump), values_to = "percent", names_to = "type") %>%
@@ -295,12 +321,15 @@ total_cov %>%
   theme_minimal() +
   transition_reveal(survey)
 
+# I read this back in in a different session.
 
 march <- read_rds("march.rds")
 april <- read_rds("april.rds")
 may <- read_rds("may.rds")
 june <- read_rds("june.rds")
 total <- full_join(full_join(march, april), full_join(may, june))
+
+# I'm making a modified, clean dataset for the correlation matrix.
 
 total_new <- total %>%
   select(extra_trump_corona, 
@@ -315,12 +344,20 @@ total_new <- total %>%
          congress_district,
          pid3) 
 
+# Getting rid of non-responses and also changing each variable into binary so
+# that I can take the mean of a variable and it will give me the percent of
+# people in the district who answered yes or some variant of yes.
+
 total_new[total_new == 999] <- NA
 total_new[total_new == 888] <- NA
 total_new[total_new == 2] <- 0
 
 total_new1 <- total_new %>%
   group_by(congress_district) %>%
+  
+  # These questions asked for levels of support, where 0 and 1 are both some
+  # level of support (rather than non-support).
+  
   summarize(covid_trump = mean(extra_trump_corona %in% c(0, 1), na.rm = TRUE),
             close_school = mean(extra_covid_close_schools %in% c(0, 1), na.rm = TRUE),
             fox_news = mean(news_sources_fox, na.rm = TRUE),
@@ -337,37 +374,11 @@ total_new1 <- total_new %>%
 total_new1 <- total_new1 %>%
   select(-congress_district)
 
-total_new <- total_new %>%
-  mutate(extra_trump_corona = case_when(
-    extra_trump_corona == 1 ~ 3,
-    extra_trump_corona == 2 ~ 4,
-    extra_trump_corona == 3 ~ 2,
-    extra_trump_corona == 4 ~ 1,
-    TRUE ~ NA_real_
-  )) %>%
-  mutate(extra_covid_close_schools = case_when(
-    extra_covid_close_schools == 1 ~ 3,
-    extra_covid_close_schools == 2 ~ 4,
-    extra_covid_close_schools == 3 ~ 2,
-    extra_covid_close_schools == 4 ~ 1,
-    TRUE ~ NA_real_
-  )) %>%
-  rename(covid_trump = extra_trump_corona,
-         social_dist = extra_covid_socialize_no_dist,
-         fox_news = news_sources_fox,
-         close_school = extra_covid_close_schools,
-         upper_tax = raise_upper_tax,
-         medicare4all = medicare_for_all)
-
-total_new
-
 corre1 <- cor(total_new1, use = "complete.obs",
               method = c("pearson", "kendall", "spearman"))
 
-corrplot(corre)
-
-corrplot(corre, order = "FPC",
-         col = r, bg = "white")
+# I Googled for some of these arguments. I wanted black numbers on the lower
+# diagonal and colors on the top diagonal.
 
 corrplot.mixed(corre1, 
                lower = "number", 
@@ -379,6 +390,9 @@ corrplot.mixed(corre1,
                tl.pos = "lt", diag = "u",
                tl.col = "black")
 
+# Here I fiddle around with county case count and population data to create the
+# state case count animation.
+
 counties_pop <- read_csv("covid_county_population_usafacts.csv")
 counties_cases <- read_csv("covid_confirmed_usafacts.csv")
 
@@ -386,11 +400,7 @@ counties_cases <- counties_cases %>%
   rename(name = "County Name",
          state = "State") 
 
-state.name[match(state, state.abb)]
-counties_cases
-
 counties_cases$NAME <- paste(counties_cases$name, counties_cases$state, sep=", ")
-counties_cases
 
 inner_join(counties_population, by = "NAME")
 
@@ -399,20 +409,10 @@ cases_plot <- counties_cases %>%
                values_to = "cases",
                names_to = "date")
 
-
 cases <- cases_plot %>%
   group_by(state, date) %>%
   summarize(cases = sum(cases),
             .groups = "drop") 
-
-cases
-
-cases %>%
-  filter(date == "11/3/20") %>%
-  group_by(state) %>%
-  summarize(mean = mean(cases))
-
-read_csv()
 
 p <- cases %>%
   mutate(date = as.Date(date, "%m/%d/%y")) %>%
@@ -429,33 +429,15 @@ p <- cases %>%
 
 anim_save("states_cases.gif", p)
 
-?scale_color_discrete
-
-cases_plot %>%
-  mutate(cases_per_cap = cases/value) %>%
-  summarize(max = 100000 * max(cases_per_cap))
+# Just experimenting here. Ultimately got rid of this.
 
 cases_plot <- counties_cases %>%
   inner_join(counties_population, by = c("NAME", "name")) %>%
   select(-"11/4/20":"11/12/20")
 
-cases_plot
-write_rds(cases_plot, "cases_plot.rds")
-
-cases_plot %>% 
-  mutate(date = as.Date(date, format = "%m/%d/%y")) %>%
-  filter(date == "2020-11-03") %>%
-  ggplot(aes(fill = cases * 100000 / value, color = cases * 100000 / value)) + 
-  geom_sf(aes(geometry = geometry)) + 
-  labs(title = "Covid Cases Per Capita. By County",
-       fill = "Cases per \n 100,000") +
-  theme_void() + 
-  scale_colour_gradientn(colors = c("black", "red", "lightpink"),
-                         values = c(0, 0.5, 1)) +
-  scale_fill_gradientn(colors = c("black", "red", "lightpink"),
-                       values = c(0, 0.5, 1))
-
 new_cases <- read_csv("new_cases.csv")
+
+# Here I create the new cases animation, the first one in the app.
 
 r <- new_cases %>%
   rename(us = "United States") %>%
@@ -472,27 +454,6 @@ r <- new_cases %>%
 
 anim_save("new_cases.gif", r)
 
-
-
-cases_plot %>% 
-  mutate(date = as.Date(date, format = "%m/%d/%y")) %>%
-  filter(date == "2020-11-03") %>%
-  ggplot(aes(fill = cases, color = cases)) + 
-  geom_sf(aes(geometry = geometry)) + 
-  labs(title = "Covid Cases. By County",
-       fill = "Cases") +
-  theme_void() + 
-  scale_colour_gradientn(colors = c("black","gray1", "red", "white", "white"),
-                         values = c(0, 0.4, 0.9, 0.95, 1),
-                         trans = "log") +
-  scale_fill_gradientn(colors = c("black","gray1", "red", "white", "white"),
-                       values = c(0, 0.4, 0.9, 0.95, 1),
-                       trans = "log")
-# transition_time(date)
-
-gganimate(p, "cases.gif")
-
-
 cases <- read_csv("covid_confirmed_usafacts.csv") %>%
   group_by(State) %>%
   rename(election_day = `11/3/20`,
@@ -500,9 +461,9 @@ cases <- read_csv("covid_confirmed_usafacts.csv") %>%
          state = State) %>%
   summarize(cases = sum(election_day))
 
-read_rds("states.rds")
+# Here's some data cleaning for cases per capita. Don't think I ended up using
+# it.
 
-cases
 popu <- read_csv("covid_county_population_usafacts.csv") %>%
   group_by(State) %>%
   rename(county = "County Name",
@@ -513,26 +474,8 @@ cases_per_cap_state <- inner_join(cases, popu, by = "state") %>%
   mutate(cases_per_100000 = 100000 * cases / population)
 
 write_rds(cases_per_cap_state, "cases_state.rds")
-
-averages <- read_csv("presidential_poll_averages_2020.csv", col_types = cols(
-  cycle = col_double(),
-  state = col_character(),
-  modeldate = col_character(),
-  candidate_name = col_character(),
-  pct_estimate = col_double(),
-  pct_trend_adjusted = col_double()
-)) %>%
-  filter(state == "Wyoming")
-
-averages_new <- averages %>%
-  filter(modeldate %in% c("8/3/2020", "11/3/2020")) %>%
-  filter(candidate_name %in% c("Joseph R. Biden Jr.", "Donald Trump"))
-
-averages
-
-cases_plot2
   
-  state_avgs <- read_csv("presidential_poll_averages_2020 copy.csv",
+state_avgs <- read_csv("presidential_poll_averages_2020 copy.csv",
                          col_types = cols(
                            cycle = col_double(),
                            state = col_character(),
@@ -572,6 +515,8 @@ covid_approval <- read_csv("covid_approval_toplines.csv", col_types = cols(
   timestamp = col_character()
 ))
 
+# Creating a dataset with Trump's Covid approval and his national polling, which
+# is used in the Election section. Experimenting with the rest!
 
 inner_join(covid_approval, natl_model, by = "modeldate") %>%
   filter(party == "all") %>%
@@ -624,21 +569,6 @@ write_rds(cases_plot, "cases_plot.rds")
 
 read_dta("total_1.dta")
 
-
-
-total <- read_dta("total_1.dta") %>%
-  filter(extra_trump_corona != 999) %>%
-  group_by(congress_district) %>%
-  summarize(approval_covid = mean(extra_trump_corona %in% c(1, 2), na.rm = TRUE),
-            mean_democrat = mean(pid3 == 1, na.rm = TRUE), 
-            region = as.factor(round(mean(census_region, na.rm = TRUE))),
-            number = n(),
-            .groups = "drop") %>%
-  slice(-1) %>%
-  filter(approval_covid != 0)
-
-
-
 write_rds(total_model, "total_filt.rds")
 
 counties <- read_rds("counties.rds")
@@ -649,6 +579,9 @@ counties_cases <-
          state = "State") %>%
   mutate(state = state.name[match(state, state.abb)]) %>%
   filter(name != "Statewide Unallocated")
+
+# This was pretty brutal. Over 30 ounties didn't align in the inner_join, so I
+# had to manually change names for them to match. Really tough.
 
 counties_cases$NAME <- paste(counties_cases$name, counties_cases$state, sep=", ")
 

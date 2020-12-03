@@ -5,8 +5,8 @@ account: jamespw
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 3342733
-bundleId: 3936330
+bundleId: 3937314
 url: https://jamespw.shinyapps.io/covid_politics/
-when: 1606967786.34026
+when: 1606987319.32671
 asMultiple: FALSE
 asStatic: FALSE

@@ -7,8 +7,6 @@ results2020 <- read_csv("raw_data/2020results.csv", col_types = cols(
   biden_2020 = col_double()
 ))
 
-results_2016_2020
-
 results2016 <- read_csv("raw_data/1976-2016-president.csv", col_types = cols(
   year = col_double(),
   state = col_character(),
@@ -25,9 +23,16 @@ results2016 <- read_csv("raw_data/1976-2016-president.csv", col_types = cols(
   version = col_double(),
   notes = col_logical()
 )) %>%
+  
+  # I only care about the 2016 results and Trump and Clinton.
+  
   filter(year == 2016) %>%
   filter(candidate %in% c("Trump, Donald J.", "Clinton, Hillary")) %>%
   group_by(state_po, candidate) %>%
+  
+  # Totalvotes is the same for all, so we use mean, but for some reason
+  # candidatevotes has a couple different entries for each candidate...
+  
   summarize(totalvotes = mean(totalvotes),
             candidatevotes = sum(candidatevotes),
             .groups = "drop") %>%
@@ -41,6 +46,9 @@ results_2016_2020 <-
   rename(clinton_2016 = "Clinton, Hillary",
          trump_2016 = "Trump, Donald J.",
          total_2016 = "totalvotes") %>%
+  
+  # I'm putting these into percent format so I can get percent margins.
+  
   mutate(clinton_2016 = clinton_2016 * 100 / total_2016,
          trump_2016 = trump_2016 * 100 / total_2016,
          margin_2016 = clinton_2016 - trump_2016,
@@ -53,16 +61,13 @@ cases <- read_rds("shiny_app/clean_data/cases_state.rds")
 results_cases <- results_2016_2020 %>%
   inner_join(cases, by = "state")
 
-write_rds(results_cases, "results_cases.rds")
+# Finally, an rds with results and cases.
 
+write_rds(results_cases, "results_cases.rds")
 
 approval <- read_csv("raw_data/covid_approval_toplines.csv") 
 
-approval
-View(approval %>%
-       pivot_wider(id_cols = "modeldate",
-                   values_from = "approve_estimate",
-                   names_from = "party"))
+# Just experimenting with this approval data. I will use this in the app.
 
 approval1 <- approval %>%
   pivot_wider(id_cols = "modeldate",
@@ -93,11 +98,17 @@ natl_polls <- read_csv("raw_data/presidential_poll_averages_2020 copy.csv", col_
               values_from = "pct_estimate") %>%
   rename(biden_est = "Joseph R. Biden Jr.",
          trump_est = "Donald Trump") %>%
+  
+  # Here I join national polling data with Covid approval data for the plot in
+  # the Election section.
+  
   inner_join(approval_all, by = "modeldate") %>%
   rename(covid_approve = all) %>%
   pivot_longer(cols = -modeldate,
                names_to = "type", 
                values_to = "estimate")
+
+# This is the final code I used for this plot.
 
 natl_polls %>%
   ggplot(aes(x = as.Date(modeldate, "%m/%d/%Y"), y = estimate, color = type)) +
@@ -127,6 +138,9 @@ state_polls <- read_csv("presidential_poll_averages_2020 copy.csv", col_types = 
   pct_estimate = col_double(),
   pct_trend_adjusted = col_double()
 )) %>%
+  
+  # I only want to look at swing states for my swing state bar plot.
+  
   filter(state %in% c("Arizona", "Florida", "Georgia", "Michigan", "Pennsylvania",
                       "Wisconsin", "Nevada", "North Carolina")) %>%
   filter(candidate_name %in% c("Joseph R. Biden Jr.", "Donald Trump")) %>%
@@ -146,15 +160,25 @@ state_polls <- read_csv("presidential_poll_averages_2020 copy.csv", col_types = 
          trump_mar = "trump_est_3/3/2020") %>%
   mutate(margin_mar = biden_mar - trump_mar,
          margin_nov = biden_nov - trump_nov) %>%
+  
+  # One dataset has state names, the other has state abbreviations. 
+  
   mutate(state = state.abb[match(state, state.name)]) %>%
   inner_join(results_2016_2020 %>% select(state, margin_2020), by = "state") %>%
   pivot_longer(cols = c(margin_mar, margin_nov, margin_2020),
                names_to = "type",
                values_to = "value") %>%
+  
+  # I create a logical column so that I can set color to it in the bar plot.
+  # When it's positive (Biden won), it's blue. When it's negative (Biden lost),
+  # it's red.
+  
   mutate(positive = ifelse(value >= 0, TRUE, FALSE)) %>%
   mutate(type = factor(type, levels = c("margin_mar", "margin_nov", "margin_2020")))
 
 write_rds(state_polls, "swingstate_polls.rds")
+
+# Experimenting. Will copy and paste this code into the app.
 
 state_polls %>%
   filter(state == "WI") %>%
@@ -180,6 +204,8 @@ state_results <- read_rds("states.rds") %>%
                mutate(state = state.name[match(state, state.abb)]),
              by = "state") 
 
+# Here I create the final electoral map. 
+
 state_results %>%
   ggplot(aes(fill = margin_2020)) +
   geom_sf(color = "lightgray") +
@@ -198,6 +224,8 @@ state_results %>%
                        name = "Vote Margin \n (D)") +
   theme_void() +
   labs(title = "The 2020 U.S. Presidential Election")
+
+# Writing the files for the concern graphs. Not much cleaning to do, thankfully.
 
 concern_economy <- read_csv("covid_concern_toplines.csv") %>%
   filter(subject == "concern-economy") %>%
@@ -218,5 +246,3 @@ concern_infected <- read_csv("covid_concern_toplines.csv") %>%
   mutate(modeldate = as.Date(modeldate, "%m/%d/%Y"))
 
 write_rds(concern_infected, "concern_infected.rds")
-
-results_cases

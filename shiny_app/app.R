@@ -142,23 +142,36 @@ ui <- navbarPage(
                  mainPanel(plotOutput("ConcernPlot")),
                  fluidRow(style = 'padding:30px;',
                           column(width = 7,
+                                 
+                                 # This is a new animation; this time, I used
+                                 # weighted data.
+                                 
                                  img(src = "trump_covid.gif", height = 500)),
                           column(width = 4,
+                                 HTML(
+                                     paste(
+                                         p(" "),'<br/>',
+                                         p(" "),'<br/>' )),
                                  h3("Trump's response hasn't aged well"),
                                  p("Despite seeing high approval ratings at the beginning of the crisis,
                                    by June, Americans largely did not approve of President Trump's
                                    coronavirus response, which has been widely panned by 
                                    public health experts. However, we still notice partisan differences in
-                                   approval within this graph: more liberal states, like Vermont, strongly
-                                   disapprove of Trump's response, while more conservative states, like Wyoming
+                                   approval within this graph: more liberal states like Vermont strongly
+                                   disapprove of Trump's response, while more conservative states like Wyoming
                                    strongly approve.")
                           )),
-                 h3("Partisan differences in grading Trump's response"),
+                 fluidRow(style = 'padding:30px;',
+                          column(width = 12,
+                h3("Partisan differences in grading Trump's response"),
                  p("To investigate these aforementioned partisan differences, here I look
                    at how people who identify as Democrats, Republicans, and Independents
                    approve of Trump's handling of the coronavirus. Trump's approval from Republicans 
                    has been remarkably static, while he has seen steadily declining approval from Democrats, and a
                    more slight decline from Independents."),
+                 HTML(
+                     paste(
+                         p(" "),'<br/>')))),
                  mainPanel(
                             plotOutput("ApprovalPlot")
                             ),
@@ -175,6 +188,14 @@ ui <- navbarPage(
                  titlePanel("Partisanship & Covid"),
                  mainPanel(
                             plotOutput("ScatterPlot",
+                                       
+                                       # I had to Google for quite a while to
+                                       # figure out how to add this hover
+                                       # feature. I finally found something and
+                                       # basically copied and pasted from Google
+                                       # and changed up the names to match my
+                                       # data and variables.
+                                       
                                        hover = hoverOpts(id = "plot_hover"))
                  ),
                  sidebarPanel(h3("Approval tracks closely with partisan makeup"),
@@ -193,8 +214,6 @@ ui <- navbarPage(
                      )
                  ),
                  fluidRow(style = 'padding:30px;',
-                          column(width = 5,
-                          gt_output("model_table")),
                           column(width = 7,
                                  h3("The Model"),
                                  p("On the left is a table representing my predictive model 
@@ -211,12 +230,21 @@ ui <- navbarPage(
                                    the model predicts the Trump Covid response approval of that district will 
                                    go down by 0.66%. Alternatively, we can also interpret it simply by saying 
                                    we expect a district of all Democrats to have a 6% approval rating of Trump's
-                                   response to Covid."))
+                                   response to Covid.")),
+                          column(width = 5,
+                                 
+                                 # Here I add the table for my model -- had to
+                                 # familiarize myself with gt_output.
+                                 
+                                 gt_output("model_table"))
                           ),
                  fluidRow(style = 'padding:30px;',
+                    column(width = 5,
+                           img(src = "correlation.png", height = 400)
+                    ),
                     column(width = 7,
                            h3("Correlations"),
-                           p("On the right is a figure showing the correlations between different
+                           p("On the left is a figure showing the correlations between different
                              survey responses. Note that these are correlations between the percentages of people
                              in the district who responded one way or another, rather than correlations
                              between individual survey responses. We see the relationship between the percent
@@ -226,16 +254,44 @@ ui <- navbarPage(
                              the number of Democrats in a district and each other. Support for mass deportation is highly correlated
                              with Trump's approval on Covid. However, there are some murkier correlations, or lack thereof,
                              that are less intuitive. The number of people in a district who watch Fox News isn't very correlated
-                             with the number of people who support Medicare for All or investments in the environment, for example.")),
-                     column(width = 5,
-                            img(src = "correlation.png", height = 400))
-                 )
-    )),
+                             with the number of people who support Medicare for All or investments in the environment, for example."))
+                    
+                 ),
+                 fluidRow(style = "background-color:#CCCCCC",
+                          column(width = 6,
+                                 h3("Variable Reference"),
+                                 HTML(
+                                     paste(
+                                         p(strong("perc_dem"), " = Percent of district that identifies as Democratic"),
+                                         p(strong("minwage"), " = Percent of district that supports a $15 minimum wage"),
+                                         p(strong("environment"), " = Percent of district that supports large financial investment in the environment"),
+                                         p(strong("medicare4all"), " = Percent of district that supports Medicare for All"),
+                                         p(strong("close_school"), " = Percent of district that supports closing schools")
+                                     )
+                                 )),
+                          column(width = 6,
+                                 HTML(
+                                     paste(
+                                 p(" "),'<br/>',
+                                 p(" "),'<br/>',
+                                 p(strong("upper_tax"), " = Percent of district that supports raising taxes on those with incomes over $600,000"),
+                                 p(strong("fox_news"), " = Percent of district that has heard news about politics on Fox News within last week"),
+                                 p(strong("deportation"), " = Percent of district that supports deporting all undocumented immigrants"),
+                                 p(strong("covid_trump"), " = Percent of district that approves of Trump's handling of the coronavirus")
+                                     ))
+                                 )
+    ))),
     tabPanel("Election",
              fluidPage(
                  titlePanel("The 2020 U.S. Election"),
                  fluidRow(style = 'padding:30px;',
                      column(width = 7,
+                            
+                            # I figured just loading in an image would be easier
+                            # than rendering a plot -- the less burden on the
+                            # system to render plots at once, I figure, the
+                            # better.
+                            
                             img(src = "538avg.png", height = 420)),
                      column(width = 5,
                             h3("The Polls"),
@@ -264,6 +320,10 @@ ui <- navbarPage(
                               impacted the outcomes of these states
                               is a question crucial to understanding how this election unfolded.")),
                      column(width = 5,
+                            
+                            # Again, same thing. I loaded an image instead of
+                            # rendering a plot here for the same reason.
+                            
                             img(src = "results.png", height = 420))),
                  fluidRow(style = 'padding:30px;',
                           column(width = 12,
@@ -347,12 +407,28 @@ server <- function(input, output, session){
     
     output$VirusPlot <- renderPlot({
         cases_plot <- counties_cases %>%
+            
+            # I originally tried doing pivot_longer in my data cleaning and then
+            # loading the longer dataset into the app, but the longer dataset
+            # was over 100 MB, so I figured I'd save my computer and GitHub the
+            # space and pivot_longer within the app. It definitely makes for a
+            # slower map, but it's manageable.
+            
             pivot_longer(cols = "1/22/20":"11/3/20",
                          values_to = "cases",
                          names_to = "date")    
         
+        # I know ifelse statements are probably not the neatest way to do this,
+        # but I figured it was relatively efficient, and at the time, it made a
+        # lot of sense to me.
+        
         ifelse(input$percap == "Cases per 100,000",
                cases_output <- cases_plot %>%
+                   
+                   # I had to change the date here rather than earlier; for some
+                   # reason I can't explain I kept running into an error when I
+                   # set date to a date column earlier.
+                   
                    mutate(date = as.Date(date, "%m/%d/%y")) %>%
                    filter(date == input$dateInput) %>%
                    ggplot(aes(fill = cases * 100000 / value, 
@@ -361,6 +437,10 @@ server <- function(input, output, session){
                    labs(title = "Covid cases per 100,000 residents, by county",
                         fill = "Cases per \n 100,000") +
                    theme_void() + 
+                   
+                   # The top limit is just the max cases per 100,000 of any
+                   # county.
+                   
                    scale_colour_gradientn(colors = c("black", "red", "lightpink"),
                                           limits = c(0, 22986.02),
                                           values = c(0, 0.3, 1),
@@ -378,8 +458,22 @@ server <- function(input, output, session){
                    theme_void() + 
                    scale_colour_gradientn(colors = c("black", "firebrick4", "red", 
                                                      "lightpink", "white"),
+                                          
+                                          # The values are chosen somewhat
+                                          # arbitrarily to show the
+                                          # differentiation in colors.
+                                          
                                           values = c(0, 0.5, 0.7, 0.99, 1),
+                                          
+                                          # This is an upper bound on cases in a
+                                          # county.
+                                          
                                           limits = c(0, 325000),
+                                          
+                                          # Regular log wasn't working with very
+                                          # low case counts. I found
+                                          # "pseudo_log," which worked well!
+                                          
                                           trans = "pseudo_log",
                                           guide = FALSE) +
                    scale_fill_gradientn(colors = c("black", "firebrick4", "red", 
@@ -387,13 +481,19 @@ server <- function(input, output, session){
                                         values = c(0, 0.5, 0.7, 0.99, 1),
                                         limits = c(0, 325000),
                                         breaks = c(0, 25000, 100000, 300000),
-                                        labels = c(0, 25000, "100000", "300000"),
+                                        labels = c(0, 25000, 100000, 300000),
                                         trans = "pseudo_log"))
         cases_output
         
     })
     
     output$ConcernPlot <- renderPlot({
+        
+        # Here I try if statements, which work well. I wasn't familiar. This is
+        # for the selection tool allowing you to choose between the plot
+        # demonstrating the concern people have felt about the economy and about
+        # getting Covid.
+        
         if(input$concern == "Infection")
                p <- infection_concern %>%
                    filter(modeldate <= input$datepub) %>%
@@ -438,6 +538,13 @@ server <- function(input, output, session){
     
     output$ScatterPlot <- renderPlot({
         total %>%
+            
+            # Here's a slight change for the visualization, but not for the
+            # model. Some districts with very few respondents had 0% approval. I
+            # leave them out of the graph because they make it look a little
+            # worse, but I leave them in the model. This means the slope in the
+            # model is a little different, but just a tiny bit.
+            
             filter(approval_covid != 0) %>%
             ggplot(aes(x = mean_democrat, y = approval_covid)) + 
             geom_point(aes(color = region, size = number),
@@ -470,6 +577,11 @@ server <- function(input, output, session){
                                     alpha = 1, 
                                     size = 3,
                                     color = "black",
+                                   
+                                   # This argument is a bit new to me. Not
+                                   # exactly sure what it's doing, since larger
+                                   # inputs lead to no segments.
+                                   
                                     min.segment.length = 1) +
                    geom_smooth(method = lm, se = FALSE, formula = y ~ x) +
                    scale_color_gradientn(colors = c("firebrick", "firebrick", "pink", 
@@ -479,6 +591,10 @@ server <- function(input, output, session){
                                          breaks = c(-25, 0, 25, 50, 75),
                                          labels = c(-25, 0, 25, 50, 75),
                                          name = "Margin (D)") +
+                   
+                   # Here I adjust the size to make the dots a little better --
+                   # just an aesthetic choice.
+                   
                    scale_size_continuous(range = c(2, 8),
                                          name = "Population") +
                    theme_minimal() +
@@ -496,13 +612,19 @@ server <- function(input, output, session){
                                     alpha = 1, 
                                     size = 3,
                                     color = "black",
-                                    min.segment.length = 0.8) +
+                                    min.segment.length = 1) +
                    geom_smooth(method = lm, 
-                               fill = "lightblue", 
-                               alpha = 0.1,
+                               se = FALSE,
                                formula = y ~ x) +
                    scale_color_gradientn(colors = c("firebrick", "firebrick", "pink", 
                                                     "lightblue", "navyblue", "navyblue"),
+                                         
+                                         # These values are manually calculated
+                                         # so that anything less than
+                                         # 0.333076899 is red, anything more
+                                         # than 0.3330769 is blue. 0.3330769 is
+                                         # the equivalent of 0 on the scale.
+                                         
                                          values = c(0, 0.25, 0.333076899, 0.3330769, .4166, 1),
                                          breaks = c(-25, 0, 25, 50, 75),
                                          labels = c(-25, 0, 25, 50, 75),
@@ -523,6 +645,9 @@ server <- function(input, output, session){
                           refresh = 0,
                           data = total)
         
+        # I had to use the broom.mixed library to get this to work -- kept
+        # running into errors.
+        
         tbl_regression(fit_model, intercept = TRUE) %>%
             as_gt() %>%
             tab_header(title = "Regression of Trump's Covid Approval",
@@ -531,6 +656,9 @@ server <- function(input, output, session){
     })
     
     output$model_table2 <- render_gt({
+        
+        # Here is the set of regression models for the last page.
+        
         fit_model_1 <- stan_glm(formula = shift ~ cases_per_100000,
                                 refresh = 0,
                                 data = results_cases)
@@ -542,6 +670,10 @@ server <- function(input, output, session){
         ifelse(input$shift == "shift",
                y <- tbl_regression(fit_model_1, 
                                    intercept = TRUE, 
+                                   
+                                   # A classmate on Slack posted this neat way
+                                   # to get more digits -- very useful for me.
+                                   
                                    estimate_fun = function(x)
                                         style_sigfig(x, digits = 5)) %>%
                    as_gt() %>%
@@ -581,6 +713,10 @@ server <- function(input, output, session){
         
         p <- covid_approval %>% 
             ggplot(aes(x = as.Date(modeldate, "%m/%d/%Y"), y = all))
+        
+        # I figured manually adding lines was the easiest way to go about this.
+        # I think it turned out okay, even though the y-axis shifts depending on
+        # inputs.
         
         if(input$toggleDem)
             p <- p + geom_line(aes(x = as.Date(modeldate, "%m/%d/%Y"),
@@ -632,6 +768,11 @@ server <- function(input, output, session){
     })
     
     output$hover_info <- renderPrint({
+        
+        # Again, this hover stuff is largely taken from Google, with names
+        # changed to my data. I'm incredibly grateful to the person who posted
+        # this.
+        
         if(!is.null(input$plot_hover)){
             hover = input$plot_hover
             dist = sqrt((hover$x-total$mean_democrat)^2+(hover$y-total$approval_covid)^2)
