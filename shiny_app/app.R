@@ -438,30 +438,34 @@ ui <- navbarPage(
                           column(width = 12,
                                  h3("Covid Cases and Election Results"),
                                  p("The plots below show how the number of cases 
-                                 per 100,000 residents in each state correlates 
-                                 with that state's vote margin in 2020 and that
-                                 state's shift in vote margin from 2016. 
-                                 Overall, we see that as the number of cases per
-                                 capita goes up, both the shift from 2016 and 
-                                 the 2020 vote margin go down. We might expect 
-                                 that the number of cases per capita is 
-                                 negatively correlated with the Democratic vote 
-                                 margin: red states got hit particularly hard. 
-                                 What's not as intuitive is why states with 
-                                 higher cases per capita shifted less Democratic 
-                                 than those with lower cases per capita. I 
-                                 create two more predictive models here. The 
-                                 more technical explanations for each variable 
-                                 mirror those of the model in the last section, 
-                                 so I will just interpret each variable a little 
-                                 more informally here. First, we predict that a 
-                                 theoretical state with 0 cases per 100,000 
-                                 residents voted +28 points Democratic and had a
-                                 +5.4 point shift toward Democrats in 2020 from 2016. For each additional case per 100,000, we expect this theoretical state's
-                                   Democratic point margin to go down by about 0.01 and its shift from 2016 to go down by
-                                   about 0.0008. However, the confidence intervals are quite large, so we cannot
-                                   be too sure about the efficacy of this model. Nevertheless, it does provide some
-                                   evidence that more cases per capita did not lead to any sort of widespread Democratic wave."))),
+                                 per 100,000 residents in each county correlates 
+                                 with that county's vote margin in 2020 and that
+                                 county's shift in vote margin from 2016. I 
+                                 create two more predictive models here. 
+                                 Overall, we estimate that as the number of 
+                                 cases per capita in a county goes up, a county 
+                                 votes very slightly more Democratic. And yet, 
+                                 our other model suggests that as a county's 
+                                 cases per capita increases, it shifts more 
+                                 Republican. This second model isn't very 
+                                 intuitive: why did counties with higher cases 
+                                 per capita shift more Republican than those 
+                                 with lower cases per capita? The more technical 
+                                 explanations for each variable mirror those of 
+                                 the model in the last section, so I will just 
+                                 interpret each variable a little more 
+                                 informally here. First, we predict that a 
+                                 theoretical county with 0 cases per 100,000 
+                                 residents voted +32 points Republican and had a
+                                 +1.3 point shift toward Democrats in 2020 from 
+                                 2016. For each additional case per 100,000, we 
+                                 expect this theoretical county's Democratic 
+                                 point margin to go up by about 0.00006 and its 
+                                 shift from 2016 to go down by about 0.0005. 
+                                 This model, importantly, suggests that a county 
+                                 with a very high number of Covid cases per 
+                                 capita likely voted more Republican than it did
+                                 in 2016."))),
                  mainPanel(
                      plotOutput("ElectionPlot")
                  ),
@@ -512,9 +516,11 @@ server <- function(input, output, session){
                          values_to = "cases",
                          names_to = "date")    
         
-        # I know ifelse statements are probably not the neatest way to do this,
-        # but I figured it was relatively efficient, and at the time, it made a
-        # lot of sense to me.
+        # I know ifelse statements are probably not the neatest way to do
+        # determine what is shown to the user based on their input, but I
+        # figured it was relatively efficient, and at the time, it made a lot of
+        # sense to me. Based on what they choose, I assign a variable and
+        # display that variable after the ifelse.
         
         ifelse(input$percap == "Cases per 100,000",
                cases_output <- cases_plot %>%
@@ -659,6 +665,10 @@ server <- function(input, output, session){
     })
     
     output$ElectionPlot <- renderPlot({
+        
+        # This is the plot showing election results vs. cases per capita. The
+        # user determines whether they want to look at 2020 results or shifts
+        # from 2016.
         
         ifelse(input$shift == "shift",
                results_cases_plot <- 

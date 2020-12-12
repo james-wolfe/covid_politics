@@ -208,6 +208,51 @@ write_rds(april, "april.rds")
 write_rds(may, "may.rds")
 write_rds(june, "june.rds")
 
+total <- full_join(full_join(march, april,
+                             by = c("state", 
+                                    "census_region",
+                                    "extra_trump_corona", 
+                                    "trump_biden", 
+                                    "pid3", 
+                                    "congress_district", 
+                                    "news_sources_fox",
+                                    "extra_covid_close_schools", 
+                                    "deportation", 
+                                    "medicare_for_all", 
+                                    "raise_upper_tax",
+                                    "minwage", 
+                                    "environment", 
+                                    "weight")), 
+                   full_join(may, june, 
+                             by = c("state", 
+                                    "census_region",
+                                    "extra_trump_corona", 
+                                    "trump_biden", 
+                                    "pid3", 
+                                    "congress_district", 
+                                    "news_sources_fox",
+                                    "extra_covid_close_schools", 
+                                    "deportation", 
+                                    "medicare_for_all", 
+                                    "raise_upper_tax",
+                                    "minwage", 
+                                    "environment", 
+                                    "weight")), 
+                   by = c("state", 
+                          "census_region",
+                          "extra_trump_corona", 
+                          "trump_biden", 
+                          "pid3", 
+                          "congress_district", 
+                          "news_sources_fox",
+                          "extra_covid_close_schools", 
+                          "deportation", 
+                          "medicare_for_all", 
+                          "raise_upper_tax",
+                          "minwage", 
+                          "environment", 
+                          "weight"))
+
 
 # Here I read in the data for states' and counties' geometry -- crucial for
 # getting the maps I'm using.
@@ -240,6 +285,8 @@ pop <- states_population %>%
 
 # Here I attempt to manually weight the data, by counting each person's support
 # vote (which would otherwise be 1) as their weight, then summing all weights.
+# I'm summing up the number of people who approved of Trump's handling of Covid
+# and dividing by the number of responses, to get his approval percentage.
 
 survey_march <- march %>%
   filter(extra_trump_corona != 999) %>%
@@ -249,7 +296,7 @@ survey_march <- march %>%
   summarize(mean = sum(trump_covid_weights) / sum(weight), .groups = "drop") 
 
 # I do this next step for each month individually because I want a graphic
-# displaying the approval in different months.
+# displaying the approval in different months. 
 
 survey_march <- inner_join(survey_march, pop, by = "state") %>%
   mutate(month = 3)
@@ -284,6 +331,7 @@ survey_june <- june %>%
 survey_june <- inner_join(survey_june, pop, by = "state") %>%
   mutate(month = 6)
 
+# Joining the results together with the month added to each for the animation.
 
 survey <- full_join(full_join(survey_march, survey_april, 
                               by = c("state", "mean", "month")), 
@@ -340,8 +388,9 @@ total_new[total_new == 2] <- 0
 total_new1 <- total_new %>%
   group_by(congress_district) %>%
   
-  # These questions asked for levels of support, where 0 and 1 are both some
-  # level of support (rather than non-support).
+  # These first two questions asked for levels of support, where 0 and 1 are
+  # both some level of support (rather than non-support). The rest are just 0 or
+  # 1, where 1 is support, hence the different methods.
   
   summarize(covid_trump = mean(extra_trump_corona %in% c(0, 1), na.rm = TRUE),
             close_school = mean(extra_covid_close_schools %in% c(0, 1), na.rm = TRUE),
