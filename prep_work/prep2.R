@@ -246,3 +246,7 @@ concern_infected <- read_csv("covid_concern_toplines.csv") %>%
   mutate(modeldate = as.Date(modeldate, "%m/%d/%Y"))
 
 write_rds(concern_infected, "concern_infected.rds")
+
+
+
+read_rds(count)

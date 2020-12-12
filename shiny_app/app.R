@@ -10,6 +10,10 @@ library(gtsummary)
 library(rstanarm)
 library(broom.mixed)
 
+
+# Remember to clean up text and make it <80 characters
+
+
 # Here I'm reading in all my clean data. I had to make sure that they're all in
 # the local directory.
 
@@ -26,6 +30,7 @@ swing_state <- read_rds("./clean_data/swingstate_polls.rds")
 economic_concern <- read_rds("./clean_data/concern_economy.rds")
 results_cases <- read_rds("./clean_data/results_cases.rds")
 infection_concern <- read_rds("./clean_data/concern_infected.rds")
+county_results_cases <- read_rds("./clean_data/county_results_cases.rds")
 
 ui <- navbarPage(
     "Covid & Politics",
@@ -42,31 +47,41 @@ ui <- navbarPage(
                                   
                                   img(src = "new_cases.gif", height = 420)),
                            column(width = 5,
-                                  h3("Number of confirmed cases per day increasing sharply"),
-                                  p("As the animation on the left shows, the number of cases
-                                    per day has been increasing sharply as of late. The first peak
-                                    wave hit almost 50,000 cases per day, and the second peak hit
-                                    about 75,000 cases per day, whereas the new peak is reaching 
-                                    almost 200,000. But, an important thing 
-                                    to note is that the graph shows the number of confirmed cases
-                                    per day. For the first few months of the pandemic, the United
-                                    States had very limited testing capacity. It's estimated that a 
-                                    great deal of cases were never recorded during those first two peaks
-                                    (and even that a great, but lesser, amount of cases are still not
-                                    being recorded now). The number of cases that have been missed is a subject of
-                                    much debate.")
+                                  h3("Number of confirmed cases per day 
+                                     increasing sharply"),
+                                  p("As the animation on the left shows, the 
+                                  number of cases per day has been increasing 
+                                  sharply as of late. The first peak wave hit 
+                                  almost 50,000 cases per day, and the second 
+                                  peak hit about 75,000 cases per day, whereas 
+                                  the new peak is reaching almost 200,000. But, 
+                                  an important thing to note is that the graph
+                                  shows the number of confirmed cases per day. 
+                                  For the first few months of the pandemic, the 
+                                  United States had very limited testing 
+                                  capacity. It's estimated that a great deal of 
+                                  cases were never recorded during those first 
+                                  two peaks (and even that a great, but lesser, 
+                                  numb34 of cases are still not being recorded 
+                                  now). The number of cases that have been 
+                                  missed is a subject of much debate.")
                                   )),
                        fluidRow(style = 'padding:30px;',
                             column(width = 5,
-                                   h3("Most populous states have the most cases"),
-                                   p("New York's case count (and New Jersey's, to a lesser extent)
-                                     exploded toward the beginning of the pandemic, but in the summer,
-                                     California, Texas, and Florida flew by New York's total case count.
-                                    Also during the summer, several states saw their curves flatten, 
-                                     possibly in part due to more people spending time outdoors. But the weather
-                                     isn't more hospitable in the summer in all states -- Florida and Texas, for example,
-                                     experience dreadfully hot summers that force many indoors, possibly worsening their 
-                                     spreads.")
+                                   h3("Most populous states have the most 
+                                      cases"),
+                                   p("New York's case count (and New Jersey's, 
+                                   to a lesser extent) exploded toward the 
+                                   beginning of the pandemic, but in the summer,
+                                   California, Texas, and Florida flew by New 
+                                   York's total case count. Also during the 
+                                   summer, several states saw their curves 
+                                   flatten, possibly in part due to more people 
+                                   spending time outdoors. But the weather isn't 
+                                   more hospitable in the summer in all states 
+                                   -- Florida and Texas, for example, experience 
+                                   dreadfully hot summers that force many 
+                                   indoors, possibly worsening their spreads.")
                             ),
                             
                             # I wanted to give some space in between columns,
@@ -83,12 +98,14 @@ ui <- navbarPage(
              fluidRow(style = 'padding:30px;',
                       column(width = 12,
              h3("Number of cases per capita is another story"),
-             p("As we can see in the graph below, some regions have been hit particularly hard
-             when looking at cases per 100,000 residents. North Dakota and South Dakota, which 
-             have relatively low populations, have extremely high numbers of cases per capita. 
-             Some less populous counties in the South, too, have high numbers of cases per capita.
-               Adjust to choose which date you'd like to look at, and whether you'd 
-               like to look at total cases or cases per 100,000 residents."))), 
+             p("As we can see in the graph below, some regions have been hit 
+             particularly hard when looking at cases per 100,000 residents. 
+             North Dakota and South Dakota, which have relatively low 
+             populations, have extremely high numbers of cases per capita. Some 
+             less populous counties in the South, too, have high numbers of 
+             cases per capita. Adjust to choose which date you'd like to look 
+             at, and whether you'd like to look at total cases or cases per 
+             100,000 residents."))), 
                        sidebarPanel(
                            sliderInput("dateInput",
                                        "Dates:",
@@ -116,16 +133,18 @@ ui <- navbarPage(
     tabPanel("Public Opinion",
              fluidPage(
                  titlePanel("Public Opinion"),
-                 p("Concern about getting coronavirus has fluctuated a great deal.
-                   As we can see from the graph below, few people were very concerned about 
-                   being infected in mid-February, but by mid-April, a majority of the country was at
-                   least somewhat concerned. A slightly concerning sign is that despite seeing surges
-                   in people who are very concerned about infection when there are outbreaks, 
-                   we see that concern subsides right after, even though the threat is still there.
-                   Concern may be a product of several things: raw case numbers, warnings from public health
-                   experts, and statements and actions from leaders like President Donald Trump, 
-                   who repeatedly urged citizens to not worry about contracting COVID-19.
-                   "),
+                 p("Concern about getting coronavirus has fluctuated a great 
+                 deal. As we can see from the graph below, few people were very 
+                 concerned about being infected in mid-February, but by 
+                 mid-April, a majority of the country was at least somewhat 
+                 concerned. A slightly concerning sign is that despite seeing 
+                 surges in people who are very concerned about infection when 
+                 there are outbreaks, we see that concern subsides right after, 
+                 even though the threat is still there. Concern may be a product 
+                 of several things: raw case numbers, warnings from public 
+                 health experts, and statements and actions from leaders like 
+                 President Donald Trump, who repeatedly urged citizens to not 
+                 worry about contracting COVID-19."),
                  
                  sidebarPanel(
                      selectInput(inputId = "concern", 
@@ -153,22 +172,27 @@ ui <- navbarPage(
                                          p(" "),'<br/>',
                                          p(" "),'<br/>' )),
                                  h3("Trump's response hasn't aged well"),
-                                 p("Despite seeing high approval ratings at the beginning of the crisis,
-                                   by June, Americans largely did not approve of President Trump's
-                                   coronavirus response, which has been widely panned by 
-                                   public health experts. However, we still notice partisan differences in
-                                   approval within this graph: more liberal states like Vermont strongly
-                                   disapprove of Trump's response, while more conservative states like Wyoming
-                                   strongly approve.")
+                                 p("Despite giving high approval ratings at the 
+                                 beginning of the crisis, by June, Americans 
+                                 largely did not approve of President Trump's
+                                 coronavirus response, which has been widely 
+                                 panned by public health experts. However, we 
+                                 still notice partisan differences in approval 
+                                 within this graph: more liberal states like 
+                                 Vermont strongly disapprove of Trump's 
+                                 response, while more conservative states like 
+                                 Wyoming strongly approve.")
                           )),
                  fluidRow(style = 'padding:30px;',
                           column(width = 12,
                 h3("Partisan differences in grading Trump's response"),
-                 p("To investigate these aforementioned partisan differences, here I look
-                   at how people who identify as Democrats, Republicans, and Independents
-                   approve of Trump's handling of the coronavirus. Trump's approval from Republicans 
-                   has been remarkably static, while he has seen steadily declining approval from Democrats, and a
-                   more slight decline from Independents."),
+                 p("To investigate these aforementioned partisan differences, 
+                 here I look at how people who identify as Democrats, 
+                 Republicans, and Independents approve of Trump's handling of 
+                 the coronavirus. Trump's approval from Republicans has been 
+                 remarkably static, while he has seen steadily declining 
+                 approval from Democrats, and a more slight decline from 
+                 Independents."),
                  HTML(
                      paste(
                          p(" "),'<br/>')))),
@@ -176,10 +200,14 @@ ui <- navbarPage(
                             plotOutput("ApprovalPlot")
                             ),
                 sidebarPanel(h4("Choose Groups"),
-                            checkboxInput("toggleAll", label = "All", value = FALSE),
-                            checkboxInput("toggleDem", label = "Democrats", value = TRUE),
-                            checkboxInput("toggleRep", label = "Republicans", value = TRUE),
-                            checkboxInput("toggleInd", label = "Independents", value = FALSE)),
+                            checkboxInput("toggleAll", label = "All", 
+                                          value = FALSE),
+                            checkboxInput("toggleDem", label = "Democrats", 
+                                          value = TRUE),
+                            checkboxInput("toggleRep", label = "Republicans", 
+                                          value = TRUE),
+                            checkboxInput("toggleInd", label = "Independents", 
+                                          value = FALSE)),
                  
              )
     ),
@@ -198,16 +226,19 @@ ui <- navbarPage(
                                        
                                        hover = hoverOpts(id = "plot_hover"))
                  ),
-                 sidebarPanel(h3("Approval tracks closely with partisan makeup"),
-                              p("Looking now at congressional districts (hover your mouse over any
-                                point in the plot on the left to see which congressional district
-                                you are looking at), we see that 
-                                the proportion of Democrats in a district is highly
-                                predictive of the district's approval rating of the
-                                President on Covid. Even though districts have experienced
-                                wildly different Covid outbreaks, most seem to follow the trend
-                                pretty closely. I build a model describing this relationship
-                                in more detail in the next subsection.")),
+                 sidebarPanel(h3("Approval tracks closely with partisan 
+                                 makeup"),
+                              p("Looking now at congressional districts (hover 
+                              your mouse over any point in the plot on the left 
+                              to see which congressional district you are 
+                              looking at), we see that  the proportion of 
+                              Democrats in a district is highly predictive of 
+                              the district's approval rating of the President on 
+                              Covid. Even though districts have experienced 
+                              wildly different Covid outbreaks, most seem to 
+                              follow the trend pretty closely. I build a model 
+                              describing this relationship in more detail in the 
+                              next subsection.")),
                  fluidRow(style = 'padding:30px;',
                      column(width = 5,
                             verbatimTextOutput("hover_info")
@@ -216,21 +247,29 @@ ui <- navbarPage(
                  fluidRow(style = 'padding:30px;',
                           column(width = 7,
                                  h3("The Model"),
-                                 p("On the left is a table representing my predictive model 
-                                 correlating the partisan makeup of a congressional district
-                                 (specifically, the percent of survey respondents in the district
-                                   who identify as Democrats) with the percent of respondents in
-                                   the district who approve of Trump's handling of the coronavirus.
-                                   The Beta value for (Intercept), 0.72, is the median of our posterior
-                                   distribution for the intercept, which indicates that our model predicts
-                                   a district with no Democrats will have a 72% approval rating on
-                                   Trump's response to Covid. The Beta value for mean_democrat, -0.66, 
-                                   is the median of the posterior distribution for the slope. It indicates 
-                                   that for an increase of 1% in district's proportion of Democrats, 
-                                   the model predicts the Trump Covid response approval of that district will 
-                                   go down by 0.66%. Alternatively, we can also interpret it simply by saying 
-                                   we expect a district of all Democrats to have a 6% approval rating of Trump's
-                                   response to Covid.")),
+                                 p("On the left is a table representing my 
+                                 predictive model correlating the partisan 
+                                 makeup of a congressional district 
+                                 (specifically, the percent of survey 
+                                 respondents in the district who identify as 
+                                 Democrats) with the percent of respondents in
+                                 the district who approve of Trump's handling of
+                                 the coronavirus. The Beta value for 
+                                 (Intercept), 0.72, is the median of our 
+                                 posterior distribution for the intercept, which 
+                                 indicates that our model predicts a district 
+                                 with no Democrats will have a 72% approval 
+                                 rating on Trump's response to Covid. The Beta 
+                                 value for mean_democrat, -0.66, is the median 
+                                 of the posterior distribution for the slope. 
+                                 It indicates that for an increase of 1% in 
+                                 district's proportion of Democrats, the model 
+                                 predicts the Trump Covid response approval of 
+                                 that district will go down by 0.66%. 
+                                 Alternatively, we can also interpret it simply 
+                                 by saying we expect a district of all Democrats 
+                                 to have a 6% approval rating of Trump's 
+                                 response to Covid.")),
                           column(width = 5,
                                  
                                  # Here I add the table for my model -- had to
@@ -244,17 +283,25 @@ ui <- navbarPage(
                     ),
                     column(width = 7,
                            h3("Correlations"),
-                           p("On the left is a figure showing the correlations between different
-                             survey responses. Note that these are correlations between the percentages of people
-                             in the district who responded one way or another, rather than correlations
-                             between individual survey responses. We see the relationship between the percent
-                             of Democrats in a district and Trump's Covid approval is quite strongly negative,
-                             as detailed above. Democratic ideals, like a higher minimum wage, stronger
-                             investments in the environment, and Medicare for All generally correlate with
-                             the number of Democrats in a district and each other. Support for mass deportation is highly correlated
-                             with Trump's approval on Covid. However, there are some murkier correlations, or lack thereof,
-                             that are less intuitive. The number of people in a district who watch Fox News isn't very correlated
-                             with the number of people who support Medicare for All or investments in the environment, for example."))
+                           p("On the left is a figure showing the correlations 
+                           between different survey responses. Note that these 
+                           are correlations between the percentages of people in 
+                           the district who responded one way or another, rather 
+                           than correlations between individual survey 
+                           responses. We see the relationship between the 
+                           percent of Democrats in a district and Trump's Covid 
+                           approval is quite strongly negative, as detailed 
+                           above. Democratic ideals, like a higher minimum wage,
+                           stronger investments in the environment, and Medicare 
+                           for All generally correlate with the number of 
+                           Democrats in a district and each other. Support for 
+                           mass deportation is highly correlated with Trump's 
+                           approval on Covid. However, there are some murkier 
+                           correlations, or lack thereof, that are less 
+                           intuitive. The number of people in a district who 
+                           watch Fox News isn't very correlated with the number 
+                           of people who support Medicare for All or investments
+                           in the environment, for example."))
                     
                  ),
                  fluidRow(style = "background-color:#CCCCCC",
@@ -262,11 +309,22 @@ ui <- navbarPage(
                                  h3("Variable Reference"),
                                  HTML(
                                      paste(
-                                         p(strong("perc_dem"), " = Percent of district that identifies as Democratic"),
-                                         p(strong("minwage"), " = Percent of district that supports a $15 minimum wage"),
-                                         p(strong("environment"), " = Percent of district that supports large financial investment in the environment"),
-                                         p(strong("medicare4all"), " = Percent of district that supports Medicare for All"),
-                                         p(strong("close_school"), " = Percent of district that supports closing schools")
+                                         p(strong("perc_dem"), " = Percent of 
+                                           district that identifies as 
+                                           Democratic"),
+                                         p(strong("minwage"), " = Percent of 
+                                           district that supports a $15 minimum 
+                                           wage"),
+                                         p(strong("environment"), " = Percent of 
+                                           district that supports large 
+                                           financial investment in the 
+                                           environment"),
+                                         p(strong("medicare4all"), " = Percent 
+                                           of district that supports Medicare 
+                                           for All"),
+                                         p(strong("close_school"), " = Percent 
+                                           of district that supports closing 
+                                           schools")
                                      )
                                  )),
                           column(width = 6,
@@ -274,10 +332,18 @@ ui <- navbarPage(
                                      paste(
                                  p(" "),'<br/>',
                                  p(" "),'<br/>',
-                                 p(strong("upper_tax"), " = Percent of district that supports raising taxes on those with incomes over $600,000"),
-                                 p(strong("fox_news"), " = Percent of district that has heard news about politics on Fox News within last week"),
-                                 p(strong("deportation"), " = Percent of district that supports deporting all undocumented immigrants"),
-                                 p(strong("covid_trump"), " = Percent of district that approves of Trump's handling of the coronavirus")
+                                 p(strong("upper_tax"), " = Percent of district 
+                                   that supports raising taxes on those with 
+                                   incomes over $600,000"),
+                                 p(strong("fox_news"), " = Percent of district 
+                                   that has heard news about politics on Fox 
+                                   News within last week"),
+                                 p(strong("deportation"), " = Percent of 
+                                   district that supports deporting all 
+                                   undocumented immigrants"),
+                                 p(strong("covid_trump"), " = Percent of 
+                                   district that approves of Trump's handling of 
+                                   the coronavirus")
                                      ))
                                  )
     ))),
@@ -295,30 +361,39 @@ ui <- navbarPage(
                             img(src = "538avg.png", height = 420)),
                      column(width = 5,
                             h3("The Polls"),
-                            p("Here we can see polling averages for Biden and Trump from about
-                              March on, compared with their actual vote margins. There is a 
-                              noticeable shift from March onwards in Trump's support.
-                              Several theories have been peddled on why this polling shift occured,
-                              and why Trump's support was underestimated in the end. Some have suggested
-                              that coronavirus might have made Democrats more likely to be at home and ready to answer
-                              surveys, due maybe to geographic and socioeconomic factors, while Republicans weren't.
-                              It's also possible that Trump supporters are somehow inherently less likely to answer a poll.
-                              Of course, though Trump's support was underestimated, it's still very possible 
-                              Trump lost votes because of his handling of the pandemic."))
+                            p("Here we can see polling averages for Biden and 
+                            Trump from about March on, compared with their 
+                            actual vote margins. There is a noticeable shift 
+                            from March onwards in Trump's support. Several 
+                            theories have been peddled on why this polling shift
+                            occured, and why Trump's support was underestimated 
+                            in the end. Some have suggested that coronavirus 
+                            might have made Democrats more likely to be at home 
+                            and ready to answer surveys, due maybe to geographic 
+                            and socioeconomic factors, while Republicans 
+                            weren't. It's also possible that Trump supporters 
+                            are somehow inherently less likely to answer a poll.
+                            Of course, though Trump's support was 
+                            underestimated, it's still very possible Trump lost 
+                            votes because of his handling of the pandemic."))
                  ),
                  fluidRow(style = 'padding:30px;',
                      column(width = 7,
                             h3("The Election"),
-                            p("On the right is a visualization of the 2020 Presidential
-                              Election Results by state, where a red state indicates a Trump
-                              victory, and a blue state indicates a Biden victory, and light red
-                              and light blue indicate close Trump and Biden wins, respectively.
-                              The eight closest states -- Arizona, Florida, Georgia, Michigan, Nevada,
-                              North Carolina, Pennsylvania, and Wisconsin -- decided the outcome of the 
-                              national election and were (for the most part) the center of attention for 
-                              each campaign. Whether Covid and, specifically, Trump's handling of Covid
-                              impacted the outcomes of these states
-                              is a question crucial to understanding how this election unfolded.")),
+                            p("On the right is a visualization of the 2020 
+                            Presidential Election Results by state, where a red 
+                            state indicates a Trump victory, and a blue state 
+                            indicates a Biden victory, and light red and light 
+                            blue indicate close Trump and Biden wins, 
+                            respectively. The eight closest states -- Arizona, 
+                            Florida, Georgia, Michigan, Nevada, North Carolina, 
+                            Pennsylvania, and Wisconsin -- decided the outcome 
+                            of the national election and were (for the most 
+                            part) the center of attention for each campaign. 
+                            Whether Covid and, specifically, Trump's handling of 
+                            Covid impacted the outcomes of these states is a 
+                            question crucial to understanding how this election 
+                            unfolded.")),
                      column(width = 5,
                             
                             # Again, same thing. I loaded an image instead of
@@ -328,14 +403,21 @@ ui <- navbarPage(
                  fluidRow(style = 'padding:30px;',
                           column(width = 12,
                                  h3("Swing States"),
-                                 p("The plots below show, for each of the eight aforementioned
-                                   swing states, its margin according to polling averages on March 3 and November 3,
-                                   and its actual margin for Biden. In some cases, like in Michigan, the polling
-                                   average in March, before coronavirus really took root in the U.S., was quite close to 
-                                   the actual margin of victory for Biden. In fact, in the majority of these states, the 
-                                   polling average in November was not distinctly more accurate than the polling average in March,
-                                   which is probably not to be expected. The further out from an election a poll is,
-                                   the less accurate it should (theoretically) be."))),
+                                 p("The plots below show, for each of the eight 
+                                 aforementioned swing states, its margin 
+                                 according to polling averages on March 3 and 
+                                 November 3, and its actual margin for Biden. In
+                                 some cases, like in Michigan, the polling 
+                                 average in March, before coronavirus really 
+                                 took root in the U.S., was quite close to the 
+                                 actual margin of victory for Biden. In fact, in
+                                 the majority of these states, the polling 
+                                 average in November was not distinctly more 
+                                 accurate than the polling average in March, 
+                                 which is probably not to be expected. The 
+                                 further out from an election a poll is, the 
+                                   less accurate it should (theoretically) be.")
+                                 )),
                  sidebarPanel(
                      selectInput(inputId = "swing", 
                                  label = ("Select swing state:"), 
@@ -355,18 +437,27 @@ ui <- navbarPage(
                  fluidRow(style = 'padding:30px;',
                           column(width = 12,
                                  h3("Covid Cases and Election Results"),
-                                 p("The plots below show how the number of cases per 100,000 residents
-                                   in each state correlates with that state's vote margin in 2020 and that
-                                   state's shift in vote margin from 2016. Overall, we see that as the number
-                                   of cases per capita goes up, both the shift from 2016 and the 2020 vote margin
-                                   go down. We might expect that the number of cases per capita is negatively correlated
-                                   with the Democratic vote margin: red states got hit particularly hard. What's not as
-                                   intuitive is why states with higher cases per capita shifted less Democratic than those with lower
-                                   cases per capita. I create two more predictive models here. The more technical explanations
-                                   for each variable mirror those of the model in the last section, so I will just interpret each
-                                   variable a little more informally here. First, we predict that a theoretical state with 0 cases
-                                   per 100,000 residents voted +28 points Democratic and had a +5.4 point shift toward
-                                   Democrats in 2020 from 2016. For each additional case per 100,000, we expect this theoretical state's
+                                 p("The plots below show how the number of cases 
+                                 per 100,000 residents in each state correlates 
+                                 with that state's vote margin in 2020 and that
+                                 state's shift in vote margin from 2016. 
+                                 Overall, we see that as the number of cases per
+                                 capita goes up, both the shift from 2016 and 
+                                 the 2020 vote margin go down. We might expect 
+                                 that the number of cases per capita is 
+                                 negatively correlated with the Democratic vote 
+                                 margin: red states got hit particularly hard. 
+                                 What's not as intuitive is why states with 
+                                 higher cases per capita shifted less Democratic 
+                                 than those with lower cases per capita. I 
+                                 create two more predictive models here. The 
+                                 more technical explanations for each variable 
+                                 mirror those of the model in the last section, 
+                                 so I will just interpret each variable a little 
+                                 more informally here. First, we predict that a 
+                                 theoretical state with 0 cases per 100,000 
+                                 residents voted +28 points Democratic and had a
+                                 +5.4 point shift toward Democrats in 2020 from 2016. For each additional case per 100,000, we expect this theoretical state's
                                    Democratic point margin to go down by about 0.01 and its shift from 2016 to go down by
                                    about 0.0008. However, the confidence intervals are quite large, so we cannot
                                    be too sure about the efficacy of this model. Nevertheless, it does provide some
@@ -377,8 +468,10 @@ ui <- navbarPage(
                  sidebarPanel(
                      selectInput(inputId = "shift", 
                                  label = ("Select your y variable:"), 
-                                 choices = list("Democratic Shift from 2016" = "shift", 
-                                                "2020 Democratic Margin" = "margin_2020"), 
+                                 choices = list("Democratic Shift from 2016" = 
+                                                    "shift", 
+                                                "2020 Democratic Margin" = 
+                                                    "margin_2020"), 
                                  selected = "Democratic Shift"),
                      gt_output("model_table2")
                      )
@@ -387,10 +480,11 @@ ui <- navbarPage(
              titlePanel("About"),
              h3("Project Background"),
              p("I sought to better understand the national political effects 
-             of a virus that has ravaged the whole globe. I did this because I am
-             deeply interested in U.S. politics, but I recognize and want to reinforce 
-             that the scope of Covid's effects extends far beyond U.S. politics: its more serious
-             effects are much more violent and tragic. Cases and deaths are not just numbers or plots."),
+             of a virus that has ravaged the whole globe. I did this because I 
+             am deeply interested in U.S. politics, but I recognize and want to 
+             reinforce that the scope of Covid's effects extends far beyond U.S. 
+             politics: its more serious effects are much more violent and 
+             tragic. Cases and deaths are not just numbers or plots."),
              p(
              "I got survey data from Nationscape and FiveThirtyEight, 
              data on Covid from USAFacts, and data on elections from MIT."),
@@ -549,7 +643,8 @@ server <- function(input, output, session){
             ggplot(aes(x = mean_democrat, y = approval_covid)) + 
             geom_point(aes(color = region, size = number),
                        alpha = 0.7) + 
-            geom_smooth(method = lm, se = FALSE, color = "royalblue", alpha = 0.8) +
+            geom_smooth(method = lm, se = FALSE, formula = y ~ x, color = "royalblue", 
+                        alpha = 0.8) +
             theme_minimal() + 
             labs(x = "Democrats",
                  y = "Approval on Covid",
@@ -567,75 +662,47 @@ server <- function(input, output, session){
         
         ifelse(input$shift == "shift",
                results_cases_plot <- 
-                   results_cases %>%
+                   county_results_cases %>%
+                   filter(cases_per_100000 != 0) %>%
+                   filter(!is.na(margin_2020)) %>%
                    ggplot(aes(x = cases_per_100000, 
-                              y = shift, 
-                              color = margin_2020,
-                              size = population)) +
+                              y = 100 * shift, 
+                              color = 100 * margin_2020, 
+                              size = value)) + 
                    geom_point(alpha = 0.7) +
-                   geom_text_repel(aes(label = state), 
-                                    alpha = 1, 
-                                    size = 3,
-                                    color = "black",
-                                   
-                                   # This argument is a bit new to me. Not
-                                   # exactly sure what it's doing, since larger
-                                   # inputs lead to no segments.
-                                   
-                                    min.segment.length = 1) +
                    geom_smooth(method = lm, se = FALSE, formula = y ~ x) +
+                   scale_x_log10() +
                    scale_color_gradientn(colors = c("firebrick", "firebrick", "pink", 
-                                                    "lightblue", "navyblue", "navyblue"),
-                                         values = c(0, 0.25, 0.333076899, 0.3330769, 
-                                                    .4166, 1),
-                                         breaks = c(-25, 0, 25, 50, 75),
-                                         labels = c(-25, 0, 25, 50, 75),
+                                                    "skyblue", "navyblue", "navyblue"),
+                                         values = c(0, 0.2, 0.517622389, 
+                                                    0.517622389000001, .8, 1),
                                          name = "Margin (D)") +
-                   
-                   # Here I adjust the size to make the dots a little better --
-                   # just an aesthetic choice.
-                   
-                   scale_size_continuous(range = c(2, 8),
-                                         name = "Population") +
+                   scale_size_continuous(name = "Population") +
                    theme_minimal() +
                    labs(x = "Cases per 100,000",
-                        y = "Shift (D) from 2016",
-                        title = "States' Shifts from 2016 Margins vs. Cases per 100,000"),
+                        y = "Percent Shift to Democrats",
+                        title = "Counties' Electoral Margin Shifts from 2016 vs. Cases per Capita"),
                results_cases_plot <- 
-                   results_cases %>%
-                   ggplot(aes(x = cases_per_100000, 
-                              y = margin_2020, 
-                              color = margin_2020,
-                              size = population)) +
+                   county_results_cases %>%
+                   filter(cases_per_100000 != 0) %>%
+                   filter(!is.na(margin_2020)) %>%
+                   ggplot(aes(x = cases_per_100000,
+                              y = 100 * margin_2020, 
+                              color = 100 * margin_2020, 
+                              size = value)) + 
                    geom_point(alpha = 0.7) +
-                   geom_text_repel(aes(label = state), 
-                                    alpha = 1, 
-                                    size = 3,
-                                    color = "black",
-                                    min.segment.length = 1) +
-                   geom_smooth(method = lm, 
-                               se = FALSE,
-                               formula = y ~ x) +
+                   geom_smooth(method = lm, se = FALSE, formula = y ~ x) +
+                   scale_x_log10() +
                    scale_color_gradientn(colors = c("firebrick", "firebrick", "pink", 
-                                                    "lightblue", "navyblue", "navyblue"),
-                                         
-                                         # These values are manually calculated
-                                         # so that anything less than
-                                         # 0.333076899 is red, anything more
-                                         # than 0.3330769 is blue. 0.3330769 is
-                                         # the equivalent of 0 on the scale.
-                                         
-                                         values = c(0, 0.25, 0.333076899, 0.3330769, .4166, 1),
-                                         breaks = c(-25, 0, 25, 50, 75),
-                                         labels = c(-25, 0, 25, 50, 75),
+                                                    "skyblue", "navyblue", "navyblue"),
+                                         values = c(0, 0.2, 0.517622389, 
+                                                    0.517622389000001, .8, 1),
                                          name = "Margin (D)") +
-                   scale_size_continuous(range = c(2, 8),
-                                         name = "Population") +
+                   scale_size_continuous(name = "Population") +
                    theme_minimal() +
                    labs(x = "Cases per 100,000",
-                        y = "Margin (D)",
-                        title = "States' 2020 Margins vs. Cases per 100,000",
-               subtitle = "States that voted for Trump hit harder"))
+                        y = "Vote Margin (in Pct)",
+                        title = "Counties' Vote Margins vs. Cases per Capita"))
         
         results_cases_plot
     })
@@ -661,11 +728,17 @@ server <- function(input, output, session){
         
         fit_model_1 <- stan_glm(formula = shift ~ cases_per_100000,
                                 refresh = 0,
-                                data = results_cases)
+                                data = county_results_cases %>%
+                                    filter(cases_per_100000 != 0) %>%
+                                    filter(!is.na(margin_2020)) %>%
+                                    mutate(shift = 100 * shift))
         
         fit_model_2 <- stan_glm(formula = margin_2020 ~ cases_per_100000,
                                 refresh = 0,
-                                data = results_cases)
+                                data = county_results_cases %>%
+                                    filter(cases_per_100000 != 0) %>%
+                                    filter(!is.na(margin_2020)) %>%
+                                    mutate(margin_2020 = 100 * margin_2020))
         
         ifelse(input$shift == "shift",
                y <- tbl_regression(fit_model_1, 
@@ -682,9 +755,9 @@ server <- function(input, output, session){
                y <- tbl_regression(fit_model_2,  
                                    intercept = TRUE, 
                                    estimate_fun = function(x)
-                                       style_sigfig(x, digits = 3)) %>%
+                                       style_sigfig(x, digits = 5)) %>%
                    as_gt() %>%
-                   tab_header(title = "Regression of 2020 State Vote Margins",
+                   tab_header(title = "Regression of 2020 County Vote Margins",
                               subtitle = "How Predictive is Number of Cases per Capita?"))
         y
         
@@ -775,7 +848,8 @@ server <- function(input, output, session){
         
         if(!is.null(input$plot_hover)){
             hover = input$plot_hover
-            dist = sqrt((hover$x-total$mean_democrat)^2+(hover$y-total$approval_covid)^2)
+            dist = sqrt((hover$x - total$mean_democrat)^2 + 
+                            (hover$y - total$approval_covid)^2)
             cat("Congressional District \n")
             if(min(dist) < 3)
                 total$congress_district[which.min(dist)]

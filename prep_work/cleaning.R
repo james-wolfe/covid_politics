@@ -35,7 +35,8 @@ ns625 <- read_dta("./raw_data/ns20200625.dta")
 
 
 # Here I full_join all these together because I didn't really know how else to
-# get them all in one place
+# get them all in one place. It's messy, but it works. I select only some 
+# variables because the data set is massive.
 
 march <- full_join(ns319, ns326, by = c("state", "census_region", 
 "extra_trump_corona", "trump_biden", "pid3", "congress_district", "news_sources_fox",
@@ -223,8 +224,13 @@ counties_population <- get_decennial(geography = "county",
                                      geometry = TRUE, 
                                      shift_geo = TRUE) 
 
+# Just saving these as rds files so I can access them without having to retrieve
+# them from tidycensus.
+
 write_rds(states_population, "states.rds")
 write_rds(counties_population, "counties.rds")
+
+# I prepare the data with geometry info to be joined.
 
 pop <- states_population %>%
   rename(state = NAME) %>%
@@ -242,8 +248,8 @@ survey_march <- march %>%
   group_by(state) %>%
   summarize(mean = sum(trump_covid_weights) / sum(weight), .groups = "drop") 
 
-# I do this for each month individually because I want a graphic displaying the
-# approval in different months.
+# I do this next step for each month individually because I want a graphic
+# displaying the approval in different months.
 
 survey_march <- inner_join(survey_march, pop, by = "state") %>%
   mutate(month = 3)
@@ -286,8 +292,9 @@ survey <- full_join(full_join(survey_march, survey_april,
                     by = c("state", "mean", "month")) %>%
   filter(state != "DC")
 
-# Here I finally save the gif for use in the Shiny app! Had to try anim_save
-# because the other functions I knew of weren't working.
+# Here I finally save the gif of Trump's approval by state for use in the Shiny
+# app! Had to try anim_save because the other functions I knew of weren't
+# working.
 
 q <- inner_join(pop, survey, by = "state") %>%
   arrange(month) %>%
@@ -370,10 +377,6 @@ corrplot.mixed(corre1,
 
 
 
-
-
-
-# Here I read in the data for he 
 
 # I had to get a little crafty here, because I forgot some pivot_wider
 # techniques. I'm basically trying to get point margins for both March and
@@ -508,6 +511,8 @@ county_cases <- inner_join(counties, counties_cases, by = "NAME") %>%
 
 write_rds(county_cases, "county_cases.rds")
 
+
+
 county_results <- read_csv("raw_data/CountyResults2020.csv", col_types = cols(
   .default = col_character()
 )) %>%
@@ -529,6 +534,7 @@ county2016 <- read_csv("raw_data/countyresults2016.csv", col_types = cols(
          trump_perc_2016 = as.numeric(trump_2016) / as.numeric(total_2016),
          margin_2016 = clinton_perc_2016 - trump_perc_2016)
 
+
 county_results_cases <- inner_join(county_cases, county_results, by = "countyFIPS") %>%
   mutate(biden_perc_2020 = as.numeric(biden) / as.numeric(total),
          trump_perc_2020 = as.numeric(trump) / as.numeric(total),
@@ -539,8 +545,6 @@ county_results_cases <- inner_join(county_cases, county_results, by = "countyFIP
   mutate(shift = margin_2020 - margin_2016)
 
 write_rds(county_results_cases, "county_results_cases.rds")
-
-
 
 
 

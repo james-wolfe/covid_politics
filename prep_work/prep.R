@@ -552,16 +552,6 @@ inner_join(covid_approval, natl_model, by = "modeldate") %>%
            y = 58,
            label = "U.S. Deaths \n Surpass 200,000", size = 3)
 
-
-
-counties_population <- get_decennial(geography = "county",
-                                     variables = "P001001",
-                                     year = 2010,
-                                     geometry = TRUE, 
-                                     shift_geo = TRUE) 
-
-write_rds(counties_population, "counties.rds")
-
 cases_plot <- cases_plot2 %>%
   select(date, name, state, geometry, value, cases)
 
@@ -571,10 +561,10 @@ read_dta("total_1.dta")
 
 write_rds(total_model, "total_filt.rds")
 
-counties <- read_rds("counties.rds")
+counties <- read_rds("shiny_app/clean_data/counties.rds")
 
 counties_cases <- 
-  read_csv("covid_confirmed_usafacts.csv") %>%
+  read_csv("raw_data/covid_confirmed_usafacts.csv") %>%
   rename(name = "County Name",
          state = "State") %>%
   mutate(state = state.name[match(state, state.abb)]) %>%
@@ -639,8 +629,83 @@ counties_cases$NAME[counties_cases$NAME == "Portsmouth City, Virginia"] <-
   "Portsmouth city, Virginia"
 
 county_cases <- inner_join(counties, counties_cases, by = "NAME") %>%
-  select(-GEOID, -variable, -name, -state, -stateFIPS, -countyFIPS)
+  select(-GEOID, -variable, -name, -state, -stateFIPS)
 
 write_rds(county_cases, "county_cases.rds")
 
 
+county_results <- read_csv("raw_data/CountyResults2020.csv", col_types = cols(
+  .default = col_character()
+)) %>%
+  slice(-1) %>%
+  rename(biden = `Joseph R. Biden Jr.`,
+         trump = `Donald J. Trump`,
+         total = `Total Vote`) %>%
+  mutate(countyFIPS = as.numeric(FIPS))
+
+county2016 <- read_csv("raw_data/countyresults2016.csv", col_types = cols(
+  .default = col_character()
+)) %>%
+  slice(-1) %>%
+  rename(clinton_2016 = `Hillary Clinton`,
+         trump_2016 = `Donald J. Trump`,
+         total_2016 = `Total Vote`) %>%
+  mutate(countyFIPS = as.numeric(FIPS),
+         clinton_perc_2016 = as.numeric(clinton_2016) / as.numeric(total_2016),
+         trump_perc_2016 = as.numeric(trump_2016) / as.numeric(total_2016),
+         margin_2016 = 100 * (clinton_perc_2016 - trump_perc_2016))
+
+county_results_cases <- inner_join(county_cases, county_results, by = "countyFIPS") %>%
+  mutate(biden_perc_2020 = as.numeric(biden) / as.numeric(total),
+         trump_perc_2020 = as.numeric(trump) / as.numeric(total),
+         margin_2020 = 100 * (biden_perc_2020 - trump_perc_2020),
+         cases_per_100000 = 100000 * `11/3/20` / value) %>%
+  inner_join(county2016, by = "countyFIPS") %>%
+  select(NAME, value, margin_2016, margin_2020, `11/3/20`, cases_per_100000) %>%
+  mutate(shift = margin_2020 - margin_2016)
+
+write_rds(county_results_cases, "county_results_cases.rds")
+
+county_results_cases %>%
+  filter(cases_per_100000 != 0) %>%
+  filter(!is.na(margin_2020)) %>%
+  ggplot(aes(x = cases_per_100000, y = shift, color = margin_2020, size = value)) + 
+  geom_point(alpha = 0.7) +
+  geom_smooth(method = lm, se = FALSE, formula = y ~ x) +
+  scale_x_log10() +
+  scale_color_gradientn(colors = c("firebrick", "firebrick", "pink", 
+                                   "skyblue", "navyblue", "navyblue"),
+                        values = c(0, 0.2, 0.517622389, 0.517622389000001, .8, 1),
+                        name = "Margin (D)") +
+  theme_minimal()
+
+
+fit_obj <- stan_glm(data = county_results_cases %>%
+                      filter(cases_per_100000 != 0) %>%
+                      filter(!is.na(margin_2020)),
+                    formula = shift ~ cases_per_100000,
+                    refresh = 0)
+print(fit_obj, digits = 10)
+
+county_results_cases %>%
+  ggplot(aes(fill = shift, color = shift)) + 
+  geom_sf() +
+  scale_color_gradientn(colors = c("firebrick", "firebrick", "pink", 
+                                   "skyblue", "navyblue", "navyblue"),
+                        values = c(0, 0.6, 0.7075300091,0.7075300091000001, .8, 1),
+                        name = "Margin (D)") +
+  scale_fill_gradientn(colors = c("firebrick", "firebrick", "pink", 
+                                   "skyblue", "navyblue", "navyblue"),
+                       values = c(0, 0.6, 0.7075300091,0.7075300091000001, .8, 1),
+                        name = "Shift (D)") +
+  theme_void()
+
+0.5518030217 / (0.5518030217 + 0.2280974979)
+
+print(min(county_results_cases$margin_2020, na.rm = TRUE), digits = 10)
+print(max(county_results_cases$margin_2020, na.rm = TRUE), digits = 10)
+
+print(0.9309090909 / (0.9309090909 + 0.8675237254), digits = 10)
+print((-0.9309091 / (0.9309091 + 0.8675237)), digits = 10)
+min(county_results_cases$margin, na.rm = TRUE)
+max(county_results_cases$margin, na.rm = TRUE)
