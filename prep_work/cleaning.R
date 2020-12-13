@@ -431,7 +431,8 @@ corrplot.mixed(corre1,
 # techniques. I'm basically trying to get point margins for both March and
 # November from polling averages. This is for the polling averages plot.
 
-march_3_biden <- read_csv("raw_data/presidential_poll_averages_2020 copy.csv") %>%
+march_3_biden <- 
+  read_csv("raw_data/presidential_poll_averages_2020 copy.csv") %>%
   filter(modeldate == "3/3/2020") %>%
   rename(pct_march = "pct_estimate") %>%
   pivot_wider(names_from = "candidate_name",
@@ -442,7 +443,8 @@ march_3_biden <- read_csv("raw_data/presidential_poll_averages_2020 copy.csv") %
 
 # I replicate this technique for all further ones.
 
-march_3_trump <- read_csv("raw_data/presidential_poll_averages_2020 copy.csv") %>%
+march_3_trump <- 
+  read_csv("raw_data/presidential_poll_averages_2020 copy.csv") %>%
   filter(modeldate == "3/3/2020") %>%
   rename(pct_march = "pct_estimate") %>%
   pivot_wider(names_from = "candidate_name",
@@ -497,7 +499,7 @@ counties_cases <-
   mutate(state = state.name[match(state, state.abb)]) %>%
   filter(name != "Statewide Unallocated")
 
-# This was pretty brutal. Over 30 ounties didn't align in the inner_join, so I
+# This was pretty brutal. Over 30 counties didn't align in the inner_join, so I
 # had to manually change names for them to match. Really tough.
 
 counties_cases$NAME <- paste(counties_cases$name, counties_cases$state, sep=", ")
@@ -560,7 +562,7 @@ county_cases <- inner_join(counties, counties_cases, by = "NAME") %>%
 
 write_rds(county_cases, "county_cases.rds")
 
-
+# Reading in county election results here.
 
 county_results <- read_csv("raw_data/CountyResults2020.csv", col_types = cols(
   .default = col_character()
@@ -571,6 +573,8 @@ county_results <- read_csv("raw_data/CountyResults2020.csv", col_types = cols(
          total = `Total Vote`) %>%
   mutate(countyFIPS = as.numeric(FIPS))
 
+# Reading in 2016 results so I can get the shift for each county.
+
 county2016 <- read_csv("raw_data/countyresults2016.csv", col_types = cols(
   .default = col_character()
 )) %>%
@@ -579,12 +583,17 @@ county2016 <- read_csv("raw_data/countyresults2016.csv", col_types = cols(
          trump_2016 = `Donald J. Trump`,
          total_2016 = `Total Vote`) %>%
   mutate(countyFIPS = as.numeric(FIPS),
+         
+         # Getting each candidate's totals in the form of percent.
+         
          clinton_perc_2016 = as.numeric(clinton_2016) / as.numeric(total_2016),
          trump_perc_2016 = as.numeric(trump_2016) / as.numeric(total_2016),
          margin_2016 = clinton_perc_2016 - trump_perc_2016)
 
+# Combining the election results data with the cases data, by county.
 
-county_results_cases <- inner_join(county_cases, county_results, by = "countyFIPS") %>%
+county_results_cases <- 
+  inner_join(county_cases, county_results, by = "countyFIPS") %>%
   mutate(biden_perc_2020 = as.numeric(biden) / as.numeric(total),
          trump_perc_2020 = as.numeric(trump) / as.numeric(total),
          margin_2020 = biden_perc_2020 - trump_perc_2020,
@@ -620,7 +629,9 @@ results2016 <- read_csv("raw_data/1976-2016-president.csv", col_types = cols(
   notes = col_logical()
 )) %>%
   
-  # I only care about the 2016 results and Trump and Clinton.
+  # I only care about the 2016 results and Trump and Clinton. There are other
+  # years and other candidates in this. I ultimately didn't use this data but in
+  # previous versions of the project I did, so I leave it here.
   
   filter(year == 2016) %>%
   filter(candidate %in% c("Trump, Donald J.", "Clinton, Hillary")) %>%
@@ -679,7 +690,8 @@ total_model <- total %>%
   # Here I add up the number of times a respondent said they strongly or
   # somewhat approve of Trump's handling, corresponds to 1 or 2.
   
-  summarize(approval_covid = mean(extra_trump_corona %in% c(1, 2), na.rm = TRUE),
+  summarize(approval_covid = mean(extra_trump_corona %in% c(1, 2), 
+                                  na.rm = TRUE),
             mean_democrat = mean(pid3 == 1, na.rm = TRUE), 
             
             # Region is numerical, so I take the mean, then set it to a factor
@@ -708,6 +720,8 @@ counties_cases <- read_csv("raw_data/covid_confirmed_usafacts.csv")
 counties_cases <- counties_cases %>%
   rename(name = "County Name",
          state = "State") 
+
+# Adding a NAME column with counties' names and the state they're in.
 
 counties_cases$NAME <- paste(counties_cases$name, counties_cases$state, sep=", ")
 
@@ -788,7 +802,8 @@ approval_all <- approval %>%
               names_from = "party") %>%
   select(modeldate, all)
 
-natl_polls <- read_csv("raw_data/presidential_poll_averages_2020 copy.csv", col_types = cols(
+natl_polls <- read_csv("raw_data/presidential_poll_averages_2020 copy.csv", 
+                       col_types = cols(
   cycle = col_double(),
   state = col_character(),
   modeldate = col_character(),
@@ -848,7 +863,8 @@ natl_polls %>%
 
 
 
-state_polls <- read_csv("presidential_poll_averages_2020 copy.csv", col_types = cols(
+state_polls <- read_csv("presidential_poll_averages_2020 copy.csv", 
+                        col_types = cols(
   cycle = col_double(),
   state = col_character(),
   modeldate = col_character(),

@@ -10,10 +10,6 @@ library(gtsummary)
 library(rstanarm)
 library(broom.mixed)
 
-
-# Remember to clean up text and make it <80 characters
-
-
 # Here I'm reading in all my clean data. I had to make sure that they're all in
 # the local directory.
 
@@ -247,7 +243,7 @@ ui <- navbarPage(
                  fluidRow(style = 'padding:30px;',
                           column(width = 7,
                                  h3("The Model"),
-                                 p("On the left is a table representing my 
+                                 p("On the right is a table representing my 
                                  predictive model correlating the partisan 
                                  makeup of a congressional district 
                                  (specifically, the percent of survey 
@@ -293,7 +289,7 @@ ui <- navbarPage(
                            approval is quite strongly negative, as detailed 
                            above. Democratic ideals, like a higher minimum wage,
                            stronger investments in the environment, and Medicare 
-                           for All generally correlate with the number of 
+                           for All, generally correlate with the number of 
                            Democrats in a district and each other. Support for 
                            mass deportation is highly correlated with Trump's 
                            approval on Covid. However, there are some murkier 
