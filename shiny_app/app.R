@@ -10,8 +10,8 @@ library(gtsummary)
 library(rstanarm)
 library(broom.mixed)
 
-# Here I'm reading in all my clean data. I had to make sure that they're all in
-# the local directory.
+# Here I'm reading in all my clean data. The data cleaning is done in the
+# cleaning.R file. 
 
 population <- read_rds("./clean_data/states.rds")
 counties_population <- read_rds("./clean_data/counties.rds")
@@ -28,6 +28,9 @@ results_cases <- read_rds("./clean_data/results_cases.rds")
 infection_concern <- read_rds("./clean_data/concern_infected.rds")
 county_results_cases <- read_rds("./clean_data/county_results_cases.rds")
 
+# There is a warning that appears when this app runs and I simply cannot figure
+# it out. I've Googled and fiddled around to no avail. 
+
 ui <- navbarPage(
     "Covid & Politics",
     tabPanel("Virus",
@@ -36,10 +39,9 @@ ui <- navbarPage(
                        fluidRow(style = 'padding:30px;',
                            column(width = 7,
                                   
-                                  # Inputting a gif of new cases. I couldn't
-                                  # figure this out for a while, but finally
-                                  # found the img(src = ...), and had to ensure
-                                  # all my images were in a folder called www.
+                                  # Inputting a gif of new cases. I had to
+                                  # ensure all my images were in a folder called
+                                  # www.
                                   
                                   img(src = "new_cases.gif", height = 420)),
                            column(width = 5,
@@ -106,10 +108,9 @@ ui <- navbarPage(
                            sliderInput("dateInput",
                                        "Dates:",
                                        
-                                       # I figured as.Date() would work for
-                                       # inputs, because I couldn't figure out
-                                       # how else to make sure these sliders
-                                       # were dates.
+                                       # I figured it would be easier to put
+                                       # both the sliders and the actual
+                                       # variables in date format.
                                        
                                        min = as.Date("1/22/20", "%m/%d/%y"),
                                        max = as.Date("11/3/20", "%m/%d/%y"),
@@ -157,14 +158,14 @@ ui <- navbarPage(
                  mainPanel(plotOutput("ConcernPlot")),
                  fluidRow(style = 'padding:30px;',
                           column(width = 7,
-                                 
-                                 # This is a new animation; this time, I used
-                                 # weighted data.
-                                 
                                  img(src = "trump_covid.gif", height = 500)),
                           column(width = 4,
                                  HTML(
                                      paste(
+                                         
+                                         # Adding some extra space here, just
+                                         # for aesthetic reasons.
+                                         
                                          p(" "),'<br/>',
                                          p(" "),'<br/>' )),
                                  h3("Trump's response hasn't aged well"),
@@ -218,7 +219,9 @@ ui <- navbarPage(
                                        # feature. I finally found something and
                                        # basically copied and pasted from Google
                                        # and changed up the names to match my
-                                       # data and variables.
+                                       # data and variables. Here I'm allowing
+                                       # the user to hover their mouse over a
+                                       # point and see which district it is.
                                        
                                        hover = hoverOpts(id = "plot_hover"))
                  ),
@@ -277,7 +280,13 @@ ui <- navbarPage(
                     column(width = 5,
                            img(src = "correlation.png", height = 400)
                     ),
-                    column(width = 7,
+                    
+                    # Adding some space between columns because for some reason
+                    # they're overlapping a lot.
+                    
+                    column(width = 2
+                    ),
+                    column(width = 5,
                            h3("Correlations"),
                            p("On the left is a figure showing the correlations 
                            between different survey responses. Note that these 
@@ -300,6 +309,10 @@ ui <- navbarPage(
                            in the environment, for example."))
                     
                  ),
+                 
+                 # Creating a reference for my variables in the correlation
+                 # matrix. They are not totally clear just from the names.
+                 
                  fluidRow(style = "background-color:#CCCCCC",
                           column(width = 6,
                                  h3("Variable Reference"),
@@ -540,6 +553,11 @@ server <- function(input, output, session){
                    scale_colour_gradientn(colors = c("black", "red", "lightpink"),
                                           limits = c(0, 22986.02),
                                           values = c(0, 0.3, 1),
+                                          
+                                          # I just want one legend, since color
+                                          # and fill are using the same color
+                                          # gradient.
+                                          
                                           guide = FALSE) +
                    scale_fill_gradientn(colors = c("black", "red", "lightpink"),
                                         limits = c(0, 22986.02),
@@ -556,7 +574,7 @@ server <- function(input, output, session){
                                                      "lightpink", "white"),
                                           
                                           # The values are chosen somewhat
-                                          # arbitrarily to show the
+                                          # arbitrarily, just to show the
                                           # differentiation in colors.
                                           
                                           values = c(0, 0.5, 0.7, 0.99, 1),
@@ -645,7 +663,10 @@ server <- function(input, output, session){
             ggplot(aes(x = mean_democrat, y = approval_covid)) + 
             geom_point(aes(color = region, size = number),
                        alpha = 0.7) + 
-            geom_smooth(method = lm, se = FALSE, formula = y ~ x, color = "royalblue", 
+            geom_smooth(method = lm, 
+                        se = FALSE, 
+                        formula = y ~ x, 
+                        color = "royalblue", 
                         alpha = 0.8) +
             theme_minimal() + 
             labs(x = "Democrats",
@@ -672,14 +693,19 @@ server <- function(input, output, session){
                    filter(cases_per_100000 != 0) %>%
                    filter(!is.na(margin_2020)) %>%
                    ggplot(aes(x = cases_per_100000, 
+                              
+                              # Getting these values from a proportion to a
+                              # percent.
+                              
                               y = 100 * shift, 
                               color = 100 * margin_2020, 
                               size = value)) + 
                    geom_point(alpha = 0.7) +
                    geom_smooth(method = lm, se = FALSE, formula = y ~ x) +
                    scale_x_log10() +
-                   scale_color_gradientn(colors = c("firebrick", "firebrick", "pink", 
-                                                    "skyblue", "navyblue", "navyblue"),
+                   scale_color_gradientn(colors = c("firebrick", "firebrick", 
+                                                    "pink", "skyblue", 
+                                                    "navyblue", "navyblue"),
                                          values = c(0, 0.2, 0.517622389, 
                                                     0.517622389000001, .8, 1),
                                          name = "Margin (D)") +
@@ -699,8 +725,9 @@ server <- function(input, output, session){
                    geom_point(alpha = 0.7) +
                    geom_smooth(method = lm, se = FALSE, formula = y ~ x) +
                    scale_x_log10() +
-                   scale_color_gradientn(colors = c("firebrick", "firebrick", "pink", 
-                                                    "skyblue", "navyblue", "navyblue"),
+                   scale_color_gradientn(colors = c("firebrick", "firebrick", 
+                                                    "pink", "skyblue", 
+                                                    "navyblue", "navyblue"),
                                          values = c(0, 0.2, 0.517622389, 
                                                     0.517622389000001, .8, 1),
                                          name = "Margin (D)") +
@@ -773,7 +800,7 @@ server <- function(input, output, session){
         
         swing_state %>%
             filter(state == input$swing) %>%
-            ggplot(aes(x = type, y = value, fill = positive)) +
+            ggplot(aes(x = type, y = as.numeric(value), fill = positive)) +
             geom_col() +
             scale_fill_manual(breaks = c(TRUE, FALSE),
                               values = c("navyblue", "firebrick")) +
@@ -784,7 +811,8 @@ server <- function(input, output, session){
                  y = "Biden Margin (Percent)", 
                  title = "Swing State Polling Averages \n Compared to 2020 Election Outcomes") +
             theme_minimal() +
-            theme(legend.position = "none")
+            theme(legend.position = "none") +
+            scale_y_continuous(labels = function(x) paste0(x, '%'))
         
     })
     
@@ -795,7 +823,8 @@ server <- function(input, output, session){
         
         # I figured manually adding lines was the easiest way to go about this.
         # I think it turned out okay, even though the y-axis shifts depending on
-        # inputs.
+        # inputs (which I kind of like). I let users look at approval for any
+        # group they select.
         
         if(input$toggleDem)
             p <- p + geom_line(aes(x = as.Date(modeldate, "%m/%d/%Y"),

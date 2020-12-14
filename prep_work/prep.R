@@ -146,7 +146,10 @@ poll_vs_cases <- pct_changes %>%
 # Here I'm just experimenting.
 
 poll_vs_cases %>%
-  ggplot(aes(x = mean / value, y = biden_diff_overall, color = biden_diff_nov, size = value)) +
+  ggplot(aes(x = mean / value, 
+             y = biden_diff_overall, 
+             color = biden_diff_nov, 
+             size = value)) +
   geom_point(alpha = 0.7) +
   geom_smooth(method = "lm", color = "navyblue", se = FALSE) +
   scale_color_gradientn(values = c(0, 0.4744088, 1),
@@ -156,7 +159,10 @@ poll_vs_cases %>%
 # Again, more experimenting.
 
 poll_vs_cases %>%
-  ggplot(aes(x = mean, y = biden_diff_overall, size = value, color = biden_diff_nov)) +
+  ggplot(aes(x = mean, 
+             y = biden_diff_overall, 
+             size = value, 
+             color = biden_diff_nov)) +
   geom_point() +
   geom_smooth(method = "lm", se = FALSE)
 
