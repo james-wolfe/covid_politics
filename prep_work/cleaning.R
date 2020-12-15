@@ -42,9 +42,10 @@ march <- full_join(ns319, ns326, by = c("state", "census_region",
 "extra_trump_corona", "trump_biden", "pid3", "congress_district", "news_sources_fox",
 "deportation", "medicare_for_all", "raise_upper_tax",
 "minwage", "environment", "weight")) %>%
-  select(state, census_region, extra_trump_corona, trump_biden, pid3, congress_district, 
-         news_sources_fox, extra_covid_close_schools, deportation, medicare_for_all, 
-         raise_upper_tax, minwage, environment, weight)
+  select(state, census_region, extra_trump_corona, trump_biden, pid3, 
+         congress_district, news_sources_fox, extra_covid_close_schools, 
+         deportation, medicare_for_all, raise_upper_tax, minwage, environment, 
+         weight)
 
 april <- full_join(full_join(full_join(ns402, ns409, 
                                        by = c("state", 
@@ -100,9 +101,10 @@ april <- full_join(full_join(full_join(ns402, ns409,
                           "minwage", 
                           "environment", 
                           "weight")) %>% 
-  select(state, census_region, extra_trump_corona, trump_biden, pid3, congress_district, 
-         news_sources_fox, extra_covid_close_schools, deportation, medicare_for_all, 
-         raise_upper_tax, minwage, environment, weight)
+  select(state, census_region, extra_trump_corona, trump_biden, pid3, 
+         congress_district, news_sources_fox, extra_covid_close_schools, 
+         deportation, medicare_for_all, raise_upper_tax, minwage, environment, 
+         weight)
 
 may <- full_join(full_join(ns507, ns514, 
                            by = c("state", 
@@ -147,9 +149,10 @@ may <- full_join(full_join(ns507, ns514,
                         "minwage", 
                         "environment", 
                         "weight")) %>%
-  select(state, census_region, extra_trump_corona, trump_biden, pid3, congress_district, 
-         news_sources_fox, extra_covid_socialize_no_dist, extra_covid_close_schools, 
-         deportation, medicare_for_all, raise_upper_tax, minwage, environment, weight)
+  select(state, census_region, extra_trump_corona, trump_biden, pid3, 
+         congress_district, news_sources_fox, extra_covid_socialize_no_dist, 
+         extra_covid_close_schools, deportation, medicare_for_all, 
+         raise_upper_tax, minwage, environment, weight)
 
 june <- full_join(full_join(ns604, ns611, 
                             by = c("state", 
@@ -195,9 +198,10 @@ june <- full_join(full_join(ns604, ns611,
                          "minwage", 
                          "environment", 
                          "weight")) %>%
-  select(state, census_region, extra_trump_corona, trump_biden, pid3, congress_district, 
-         news_sources_fox, extra_covid_close_schools, 
-         deportation, medicare_for_all, raise_upper_tax, minwage, environment, weight)
+  select(state, census_region, extra_trump_corona, trump_biden, pid3, 
+         congress_district, news_sources_fox, extra_covid_close_schools, 
+         deportation, medicare_for_all, raise_upper_tax, minwage, environment, 
+         weight)
 
 # Writing my rds files early on so I can just read them when I need in this prep
 # file or the other. I separate by month here because the Trump approval plot is
@@ -432,11 +436,22 @@ corrplot.mixed(corre1,
 # November from polling averages. This is for the polling averages plot.
 
 march_3_biden <- 
-  read_csv("raw_data/presidential_poll_averages_2020 copy.csv") %>%
+  read_csv("raw_data/presidential_poll_averages_2020 copy.csv", 
+           col_types = cols(
+             cycle = col_double(),
+             state = col_character(),
+             modeldate = col_character(),
+             candidate_name = col_character(),
+             pct_estimate = col_double(),
+             pct_trend_adjusted = col_double()
+           )) %>%
   filter(modeldate == "3/3/2020") %>%
   rename(pct_march = "pct_estimate") %>%
   pivot_wider(names_from = "candidate_name",
               values_from = "pct_march") %>%
+  
+  # Filtering to just Biden info here.
+  
   slice(1:33) %>%
   rename(biden_mar = `Joseph R. Biden Jr.`) %>%
   select(state, modeldate, biden_mar)
@@ -444,18 +459,37 @@ march_3_biden <-
 # I replicate this technique for all further ones.
 
 march_3_trump <- 
-  read_csv("raw_data/presidential_poll_averages_2020 copy.csv") %>%
+  read_csv("raw_data/presidential_poll_averages_2020 copy.csv", 
+           col_types = cols(
+             cycle = col_double(),
+             state = col_character(),
+             modeldate = col_character(),
+             candidate_name = col_character(),
+             pct_estimate = col_double(),
+             pct_trend_adjusted = col_double()
+           )) %>%
   filter(modeldate == "3/3/2020") %>%
   rename(pct_march = "pct_estimate") %>%
   pivot_wider(names_from = "candidate_name",
               values_from = "pct_march") %>%
+  
+  # Filtering to just Trump info.
+  
   slice(34:66) %>%
   rename(trump_mar = `Donald Trump`) %>%
   select(state, modeldate, trump_mar)
 
 march_3 <- inner_join(march_3_biden, march_3_trump, by = c("state", "modeldate"))
 
-nov_3_biden <- read_csv("raw_data/presidential_poll_averages_2020 copy.csv") %>%
+nov_3_biden <- read_csv("raw_data/presidential_poll_averages_2020 copy.csv", 
+                        col_types = cols(
+                          cycle = col_double(),
+                          state = col_character(),
+                          modeldate = col_character(),
+                          candidate_name = col_character(),
+                          pct_estimate = col_double(),
+                          pct_trend_adjusted = col_double()
+                        )) %>%
   filter(modeldate == "11/3/2020") %>%
   rename(pct_nov = "pct_estimate") %>%
   filter(candidate_name == "Joseph R. Biden Jr.") %>%
@@ -464,7 +498,15 @@ nov_3_biden <- read_csv("raw_data/presidential_poll_averages_2020 copy.csv") %>%
   rename(biden_nov = `Joseph R. Biden Jr.`) %>%
   select(state, modeldate, biden_nov)
 
-nov_3_trump <- read_csv("raw_data/presidential_poll_averages_2020 copy.csv") %>%
+nov_3_trump <- read_csv("raw_data/presidential_poll_averages_2020 copy.csv", 
+                        col_types = cols(
+                          cycle = col_double(),
+                          state = col_character(),
+                          modeldate = col_character(),
+                          candidate_name = col_character(),
+                          pct_estimate = col_double(),
+                          pct_trend_adjusted = col_double()
+                        )) %>%
   filter(modeldate == "11/3/2020") %>%
   rename(pct_nov = "pct_estimate") %>%
   filter(candidate_name == "Donald Trump") %>%
@@ -715,7 +757,12 @@ write_rds(total_model, "total_filt.rds")
 # Here I fiddle around with county case count and population data to create the
 # state case count animation.
 
-counties_cases <- read_csv("raw_data/covid_confirmed_usafacts.csv")
+counties_cases <- read_csv("raw_data/covid_confirmed_usafacts.csv", coltypes = 
+                             cols(
+                               .default = col_double(),
+                               `County Name` = col_character(),
+                               State = col_character()
+                             ))
 
 counties_cases <- counties_cases %>%
   rename(name = "County Name",
@@ -736,6 +783,9 @@ cases <- cases_plot %>%
   group_by(state, date) %>%
   summarize(cases = sum(cases),
             .groups = "drop") 
+
+# This is the state case count gif used in the app. Nothing too fancy here, but
+# the view_follow adds the effect where the axes shift.
 
 p <- cases %>%
   mutate(date = as.Date(date, "%m/%d/%y")) %>%
@@ -759,7 +809,10 @@ anim_save("states_cases.gif", p)
 
 
 
-new_cases <- read_csv("raw_data/new_cases.csv")
+new_cases <- read_csv("raw_data/new_cases.csv", coltypes = cols(
+  .default = col_double(),
+  date = col_date(format = "")
+))
 
 # Here I create the new cases animation, the first one in the app.
 
@@ -839,8 +892,11 @@ natl_polls %>%
                      name = "Estimate",
                      labels = c("Biden Polling Avg", "Trump Polling Avg", 
                                 "Trump Covid Approval")) + 
+  
+  # I put in Trump and Biden's actual vote shares here. 
+  
   geom_hline(yintercept = 51.3, color = "navyblue", alpha = 0.7, lty = "dashed") +
-  geom_hline(yintercept = 47, color = "red", alpha = 0.7, lty = "dashed") +
+  geom_hline(yintercept = 46.9, color = "red", alpha = 0.7, lty = "dashed") +
   annotate(geom = "text", x = as.Date("8/15/20", "%m/%d/%y"), y = 47.35, 
            label = "Actual Trump Vote Share", color = "firebrick4", size = 3) +
   annotate(geom = "text", x = as.Date("8/15/20", "%m/%d/%y"), y = 51.65, 

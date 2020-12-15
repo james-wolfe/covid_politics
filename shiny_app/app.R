@@ -28,8 +28,11 @@ results_cases <- read_rds("./clean_data/results_cases.rds")
 infection_concern <- read_rds("./clean_data/concern_infected.rds")
 county_results_cases <- read_rds("./clean_data/county_results_cases.rds")
 
-# There is a warning that appears when this app runs and I simply cannot figure
-# it out. I've Googled and fiddled around to no avail. 
+# There is a warning that appears when this app runs and I cannot figure it out.
+# I've Googled and fiddled around to no avail. Rucha said it was okay as long as
+# I explain why the warning is there. My explanation is simply that I don't
+# understand it, and it doesn't seem to affect my work. Sometimes, if I move
+# around in the app, the warning repeats itself.
 
 ui <- navbarPage(
     "Covid & Politics",
@@ -360,7 +363,7 @@ ui <- navbarPage(
              fluidPage(
                  titlePanel("The 2020 U.S. Election"),
                  fluidRow(style = 'padding:30px;',
-                     column(width = 7,
+                     column(width = 5,
                             
                             # I figured just loading in an image would be easier
                             # than rendering a plot -- the less burden on the
@@ -368,6 +371,7 @@ ui <- navbarPage(
                             # better.
                             
                             img(src = "538avg.png", height = 420)),
+                     column(width = 2),
                      column(width = 5,
                             h3("The Polls"),
                             p("Here we can see polling averages for Biden and 
@@ -425,7 +429,11 @@ ui <- navbarPage(
                                  accurate than the polling average in March, 
                                  which is probably not to be expected. The 
                                  further out from an election a poll is, the 
-                                   less accurate it should (theoretically) be.")
+                                 less accurate it should (theoretically) be. 
+                                 Note that a margin of 2% here means that Biden
+                                 might have won a state 48% to 46%, and not that 
+                                 Biden's vote total was 1.02 times 
+                                 the vote total of Trump.")
                                  )),
                  sidebarPanel(
                      selectInput(inputId = "swing", 
@@ -474,7 +482,10 @@ ui <- navbarPage(
                                  This model, importantly, suggests that a county 
                                  with a very high number of Covid cases per 
                                  capita likely voted more Republican than it did
-                                 in 2016."))),
+                                 in 2016. Note that a shift of -20% means the 
+                                 county's vote margin might have been +10% D in 
+                                 2016 and -10 R in 2020 (or +20 D in 2016 and 0 
+                                 in 2020, etc.)."))),
                  mainPanel(
                      plotOutput("ElectionPlot")
                  ),
@@ -492,15 +503,30 @@ ui <- navbarPage(
     tabPanel("About", 
              titlePanel("About"),
              h3("Project Background"),
-             p("I sought to better understand the national political effects 
+             p("I have, for a long time, been interested in polls, public 
+             opinion, and electoral politics. I stumbled upon the Nationscape 
+             survey and 
+             immediately thought analyzing it would make for a great project. 
+             However, it's a massive survey, and I had no idea what to focus on. 
+             In looking at public opinion this year, though, I found both Covid 
+             and the 2020 
+             Presidential Election hard to avoid, especially given my interest 
+             in studying electoral politics."),
+             p("In the end, I sought to understand the national political effects 
              of a virus that has ravaged the whole globe. I did this because I 
              am deeply interested in U.S. politics, but I recognize and want to 
              reinforce that the scope of Covid's effects extends far beyond U.S. 
              politics: its more serious effects are much more violent and 
              tragic. Cases and deaths are not just numbers or plots."),
              p(
-             "I got survey data from Nationscape and FiveThirtyEight, 
-             data on Covid from USAFacts, and data on elections from MIT."),
+             "I got survey data in the Model section from", a("Nationscape",
+             href = "https://www.voterstudygroup.org/publication/nationscape-data-set"), 
+             "and all other survey data from", a("FiveThirtyEight.",
+                                                 href = "https://github.com/fivethirtyeight/data/tree/master/polls"),  
+             "I got data on Covid cases from", a("USAFacts.",
+                                                 href = "https://usafacts.org/visualizations/coronavirus-covid-19-spread-map/"), 
+             "I got county-level election data from", a("Dave Leip.",
+                                                       href = "https://uselectionatlas.org/BOTTOM/store_data.php")),
              h3("About Me"),
              p("My name is James Wolfe and I study Mathematics. 
              You can reach me at jameswolfe@college.harvard.edu."),
@@ -624,9 +650,10 @@ server <- function(input, output, session){
                                               "Very"),
                                    name = "Level of Concern") +
                 labs(x = "Date",
-                     y = "Percent",
+                     y = "Percent of Population",
                      title = "How concerned are you about being infected with Covid?",
-                     subtitle = "Polling averages")
+                     subtitle = "Polling averages") +
+                scale_y_continuous(labels = function(x) paste0(x, '%'))
         if(input$concern == "Economy")
            p <- economic_concern %>%
             filter(modeldate <= input$datepub) %>%
@@ -643,9 +670,10 @@ server <- function(input, output, session){
                                               "Very"),
                                    name = "Level of Concern") +
                 labs(x = "Date",
-                     y = "Percent",
+                     y = "Percent of Population",
                      title = "How concerned are you about the economy?",
-                     subtitle = "Polling averages")
+                     subtitle = "Polling averages") +
+                scale_y_continuous(labels = function(x) paste0(x, '%'))
         
         p
     })
@@ -712,7 +740,7 @@ server <- function(input, output, session){
                    scale_size_continuous(name = "Population") +
                    theme_minimal() +
                    labs(x = "Cases per 100,000",
-                        y = "Percent Shift to Democrats",
+                        y = "Shift to Democrats",
                         title = "Counties' Electoral Margin Shifts from 2016 vs. Cases per Capita"),
                results_cases_plot <- 
                    county_results_cases %>%
@@ -734,10 +762,11 @@ server <- function(input, output, session){
                    scale_size_continuous(name = "Population") +
                    theme_minimal() +
                    labs(x = "Cases per 100,000",
-                        y = "Vote Margin (in Pct)",
+                        y = "Vote Margin",
                         title = "Counties' Vote Margins vs. Cases per Capita"))
         
-        results_cases_plot
+        results_cases_plot +
+            scale_y_continuous(labels = function(x) paste0(x, '%'))
     })
     
     output$model_table <- render_gt({
@@ -802,13 +831,17 @@ server <- function(input, output, session){
             filter(state == input$swing) %>%
             ggplot(aes(x = type, y = as.numeric(value), fill = positive)) +
             geom_col() +
+            
+            # If the value is positive (Democratic win), then the bar will be
+            # blue. Otherwise, it will be red.
+            
             scale_fill_manual(breaks = c(TRUE, FALSE),
                               values = c("navyblue", "firebrick")) +
             scale_x_discrete(labels = c("Polling Avg \n in March",
                                         "Polling Avg \n in Nov.",
                                         "Actual Margin")) +
             labs(x = "Measure", 
-                 y = "Biden Margin (Percent)", 
+                 y = "Biden Margin", 
                  title = "Swing State Polling Averages \n Compared to 2020 Election Outcomes") +
             theme_minimal() +
             theme(legend.position = "none") +
@@ -824,7 +857,8 @@ server <- function(input, output, session){
         # I figured manually adding lines was the easiest way to go about this.
         # I think it turned out okay, even though the y-axis shifts depending on
         # inputs (which I kind of like). I let users look at approval for any
-        # group they select.
+        # group they select. If they check a box, it adds the corresponding
+        # line.
         
         if(input$toggleDem)
             p <- p + geom_line(aes(x = as.Date(modeldate, "%m/%d/%Y"),
@@ -868,10 +902,11 @@ server <- function(input, output, session){
         
         p +
             labs(x = "Date",
-                 y = "Percent",
+                 y = "Percent Who Approve",
                  title = "Trump Approval on Covid by Party",
                  subtitle = "Partisan differences are significant") +
-            theme_minimal()
+            theme_minimal() +
+            scale_y_continuous(labels = function(x) paste0(x, '%'))
         
     })
     
