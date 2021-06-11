@@ -1,3 +1,1 @@
-# covid_politics
-
-Find the project at https://jamespw.shinyapps.io/covid_politics/
+You can find the finished project at https://jamespw.shinyapps.io/covid_politics/
